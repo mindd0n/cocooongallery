@@ -34,9 +34,8 @@ export const useButtonImageData = (src, wallType) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
     
-    // S3 경로로 변환
-    const s3Src = convertToS3Path(src);
-    img.src = s3Src;
+    // 로컬 경로 그대로 사용
+    img.src = src;
     
     img.onload = () => {
       // plane 전체를 꽉 채우는 크기
@@ -45,7 +44,7 @@ export const useButtonImageData = (src, wallType) => {
       // 텍스처 생성 (onError 핸들러 추가)
       const loader = new THREE.TextureLoader();
       loader.load(
-        s3Src,
+        src,
         (newTexture) => {
           newTexture.minFilter = THREE.LinearFilter;
           newTexture.magFilter = THREE.LinearFilter;
@@ -54,7 +53,7 @@ export const useButtonImageData = (src, wallType) => {
         undefined,
         (err) => {
           setTexture(null);
-          console.error('THREE.TextureLoader 로딩 실패:', s3Src, err);
+          console.error('THREE.TextureLoader 로딩 실패:', src, err);
         }
       );
       // 캔버스 생성
@@ -74,7 +73,7 @@ export const useButtonImageData = (src, wallType) => {
       setTexture(null);
       setImage(null);
       setCanvas(null);
-      console.error('이미지 로딩 실패:', s3Src);
+      console.error('이미지 로딩 실패:', src);
     };
   }, [src, wallType]);
 

@@ -11,4 +11,29 @@
 }
 .glow-svg-btn:hover .glow-svg path {
   filter: drop-shadow(0 0 8px #00ff00) drop-shadow(0 0 16px #00ff00);
+}
+
+/* Canvas와 관련 요소들의 z-index 설정 */
+canvas {
+  z-index: 1;
+  position: relative;
+}
+
+/* Three.js 캔버스 컨테이너 */
+.canvas-container {
+  z-index: 1;
+  position: relative;
+}
+
+/* 버튼 hover 이미지가 항상 위에 보이도록 */
+.button-hover-image {
+  z-index: 1000;
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ContentDisplay가 Canvas 위에 보이도록 */
+.content-display {
+  z-index: 100;
+  position: relative;
 } 

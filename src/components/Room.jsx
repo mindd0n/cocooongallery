@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback, Suspense } from 'react';
 import { Canvas, useThree, useFrame, useLoader } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { EffectComposer, Outline } from '@react-three/postprocessing';
 import './styles.css';
@@ -9,19 +9,8 @@ import ContentDisplay from './ContentDisplay.jsx';
 import InteractiveGoButton from './InteractiveGoButton.jsx';
 import gsap from 'gsap';
 
-// S3 기본 URL
-const S3_BASE_URL = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media';
-
-// 로컬 경로를 S3 경로로 변환하는 함수
-const convertToS3Path = (localPath) => {
-  if (localPath.startsWith('http')) {
-    return localPath; // 이미 URL인 경우 그대로 반환
-  }
-  
-  // 로컬 경로에서 파일명 추출
-  const fileName = localPath.split('/').pop();
-  return `${S3_BASE_URL}/${fileName}`;
-};
+// 로컬 기본 URL (public 폴더 기준)
+const LOCAL_BASE_URL = '';
 
 // 버튼 위치 계산 함수 (예시)
 function getButtonPosition(wallType, buttonKey, index, total) {
@@ -51,7 +40,7 @@ const minDistance = 0.5;
 const maxDistance = Math.max(roomWidth, roomHeight, roomDepth) / 2; // 큐브 밖으로 나가지 않도록 최대 거리 설정
 
 // 초기 카메라 상태를 상수로 정의
-const INITIAL_CAMERA_POSITION = new THREE.Vector3(0, viewerHeight, roomDepth / 2 - 1);
+const INITIAL_CAMERA_POSITION = new THREE.Vector3(0, viewerHeight, roomDepth / 2 + 10);
 const INITIAL_CAMERA_LOOKAT = new THREE.Vector3(0, 0, 0);
 const INITIAL_CAMERA_FOV = 75;
 
@@ -213,7 +202,8 @@ const Button = React.memo(function Button({
   setSelectedButton,
   animateCamera,
   btnIdx,
-  btnTotal
+  btnTotal,
+  forceVisible
 }) {
   const isHovered = hoveredObject === buttonKey;
   const [size, texture, image, canvas, ready] = useButtonImageData(isHovered ? hoverSrc : src, wallType);
@@ -277,16 +267,25 @@ const Button = React.memo(function Button({
       ref={meshRef}
       position={position}
       rotation={[0, 0, 0]}
+      renderOrder={10}
       onClick={handleClick}
       onPointerMove={handlePointerMove}
       onPointerOut={handlePointerOut}
+      visible={forceVisible}
     >
       <planeGeometry args={size} />
       <meshStandardMaterial
-        {...(texture ? { map: texture } : { color: "#cccccc" })}
-        transparent
-        alphaTest={0.5}
-        depthWrite={true}
+        map={texture}
+        transparent={true}
+        opacity={1}
+        alphaTest={0.1}
+        depthTest={true}
+        depthWrite={false}
+        side={THREE.DoubleSide}
+        ref={ref => {
+          if (!ref) return;
+          console.log(`[${wallType}_btn_${btnIdx}] material 연결됨`, ref, 'map:', ref.map, 'visible:', ref.visible);
+        }}
       />
     </mesh>
   );
@@ -342,7 +341,7 @@ const Room = ({
   setSelectedButton,
   animateCamera
 }) => {
-  // 로컬 이미지는 crossOrigin 설정 제거
+  // useLoader로 벽 텍스처 로딩
   const frontTex = useLoader(THREE.TextureLoader, wallTexturePaths.front);
   const backTex = useLoader(THREE.TextureLoader, wallTexturePaths.back);
   const leftTex = useLoader(THREE.TextureLoader, wallTexturePaths.left);
@@ -350,63 +349,201 @@ const Room = ({
   const ceilingTex = useLoader(THREE.TextureLoader, wallTexturePaths.ceiling);
   const floorTex = useLoader(THREE.TextureLoader, wallTexturePaths.floor);
   
-  const wallTextures = {
-    front: frontTex,
-    back: backTex,
-    left: leftTex,
-    right: rightTex,
-    ceiling: ceilingTex,
-    floor: floorTex,
-  };
-  
-  // 텍스처 상태 디버깅
-  useEffect(() => {
-    console.log('=== 텍스처 상태 확인 ===');
-    console.log('frontTex:', frontTex, 'isTexture:', frontTex?.isTexture, 'image:', frontTex?.image);
-    console.log('backTex:', backTex, 'isTexture:', backTex?.isTexture, 'image:', backTex?.image);
-    console.log('leftTex:', leftTex, 'isTexture:', leftTex?.isTexture, 'image:', leftTex?.image);
-    console.log('rightTex:', rightTex, 'isTexture:', rightTex?.isTexture, 'image:', rightTex?.image);
-    console.log('ceilingTex:', ceilingTex, 'isTexture:', ceilingTex?.isTexture, 'image:', ceilingTex?.image);
-    console.log('floorTex:', floorTex, 'isTexture:', floorTex?.isTexture, 'image:', floorTex?.image);
+  // 텍스처 로딩 상태 추적 - 한 번 로딩되면 계속 유지
+  const [texturesLoaded, setTexturesLoaded] = useState({
+    front: false,
+    back: false,
+    left: false,
+    right: false,
+    ceiling: false,
+    floor: false
+  });
+
+  // Material을 useMemo로 캐싱하여 안정적으로 재사용
+  const materials = useMemo(() => {
+    const mats = {};
     
-    // 텍스처가 로딩되면 이미지 정보도 출력
-    if (frontTex?.image) {
-      console.log('front 텍스처 이미지 로딩 완료:', frontTex.image.src);
+    if (texturesLoaded.front && frontTex) {
+      mats.front = new THREE.MeshStandardMaterial({
+        map: frontTex,
+        color: "#ffffff",
+        roughness: 0.7,
+        metalness: 0.12,
+        side: THREE.FrontSide
+      });
+      console.log('Front material 생성됨:', mats.front, 'map:', mats.front.map);
     }
+    
+    if (texturesLoaded.back && backTex) {
+      mats.back = new THREE.MeshStandardMaterial({
+        map: backTex,
+        color: "#ffffff",
+        roughness: 0.7,
+        metalness: 0.12,
+        side: THREE.FrontSide
+      });
+      console.log('Back material 생성됨:', mats.back, 'map:', mats.back.map);
+    }
+    
+    if (texturesLoaded.left && leftTex) {
+      mats.left = new THREE.MeshStandardMaterial({
+        map: leftTex,
+        color: "#ffffff",
+        roughness: 0.7,
+        metalness: 0.12,
+        side: THREE.FrontSide
+      });
+      console.log('Left material 생성됨:', mats.left, 'map:', mats.left.map);
+    }
+    
+    if (texturesLoaded.right && rightTex) {
+      mats.right = new THREE.MeshStandardMaterial({
+        map: rightTex,
+        color: "#ffffff",
+        roughness: 0.7,
+        metalness: 0.12,
+        side: THREE.FrontSide
+      });
+      console.log('Right material 생성됨:', mats.right, 'map:', mats.right.map);
+    }
+    
+    if (texturesLoaded.ceiling && ceilingTex) {
+      mats.ceiling = new THREE.MeshStandardMaterial({
+        map: ceilingTex,
+        color: "#ffffff",
+        roughness: 0.7,
+        metalness: 0.12,
+        side: THREE.FrontSide
+      });
+      console.log('Ceiling material 생성됨:', mats.ceiling, 'map:', mats.ceiling.map, 'texture image:', ceilingTex?.image?.src);
+    }
+    
+    if (texturesLoaded.floor && floorTex) {
+      mats.floor = new THREE.MeshStandardMaterial({
+        map: floorTex,
+        color: "#ffffff",
+        roughness: 0.7,
+        metalness: 0.12,
+        side: THREE.FrontSide
+      });
+      console.log('Floor material 생성됨:', mats.floor, 'map:', mats.floor.map, 'texture image:', floorTex?.image?.src);
+    }
+    
+    console.log('Material 캐싱 완료:', Object.keys(mats));
+    return mats;
+  }, [texturesLoaded, frontTex, backTex, leftTex, rightTex, ceilingTex, floorTex]);
+
+  // 디버깅용 로그 - 텍스처 상태 변화 추적
+  useEffect(() => {
+    console.log('=== 텍스처 로딩 상태 ===', texturesLoaded);
+    console.log('=== 실제 텍스처 객체 ===', {
+      front: frontTex?.image?.src,
+      back: backTex?.image?.src,
+      left: leftTex?.image?.src,
+      right: rightTex?.image?.src,
+      ceiling: ceilingTex?.image?.src,
+      floor: floorTex?.image?.src
+    });
+    
+    // 천장과 바닥 텍스처 상태 별도 확인
+    console.log('=== 천장 텍스처 상세 정보 ===');
+    console.log('ceilingTex:', ceilingTex);
+    console.log('ceilingTex.isTexture:', ceilingTex?.isTexture);
+    console.log('ceilingTex.image:', ceilingTex?.image);
+    console.log('ceilingTex.image.complete:', ceilingTex?.image?.complete);
+    console.log('ceilingTex.image.naturalWidth:', ceilingTex?.image?.naturalWidth);
+    console.log('texturesLoaded.ceiling:', texturesLoaded.ceiling);
+    
+    console.log('=== 바닥 텍스처 상세 정보 ===');
+    console.log('floorTex:', floorTex);
+    console.log('floorTex.isTexture:', floorTex?.isTexture);
+    console.log('floorTex.image:', floorTex?.image);
+    console.log('floorTex.image.complete:', floorTex?.image?.complete);
+    console.log('floorTex.image.naturalWidth:', floorTex?.image?.naturalWidth);
+    console.log('texturesLoaded.floor:', texturesLoaded.floor);
+    
+    // Room 렌더링 디버깅
+    console.log('=== Room 렌더링 상태 ===');
+    console.log('texturesLoaded 상태:', texturesLoaded);
+    console.log('조명 설정 확인:', 'ambientLight intensity=3.0');
+    console.log('벽 위치 확인:', [
+      { pos: [0, 0, -roomDepth / 2], type: 'front' },
+      { pos: [0, 0, roomDepth / 2], type: 'back' },
+      { pos: [-roomWidth / 2, 0, 0], type: 'left' },
+      { pos: [roomWidth / 2, 0, 0], type: 'right' },
+      { pos: [0, roomHeight / 2, 0], type: 'ceiling' },
+      { pos: [0, -roomHeight / 2, 0], type: 'floor' }
+    ]);
+  }, [texturesLoaded, frontTex, backTex, leftTex, rightTex, ceilingTex, floorTex]);
+
+  // 텍스처 로딩 완료 시 상태 업데이트
+  useEffect(() => {
+    const checkTextureLoaded = (texture, key) => {
+      console.log(`체크 중: ${key}`, texture);
+      if (texture && texture.isTexture && texture.image) {
+        console.log(`${key} 텍스처 이미지:`, texture.image.src, 'complete:', texture.image.complete);
+        
+        // 이미지가 완전히 로딩되었거나 로딩 중인 경우
+        if (texture.image.complete && texture.image.naturalWidth > 0) {
+          setTexturesLoaded(prev => {
+            const newState = { ...prev, [key]: true };
+            console.log(`${key} 텍스처 로딩 완료 - 상태 업데이트:`, newState);
+            return newState;
+          });
+        } else {
+          // 이미지 로딩 완료 이벤트 리스너 추가
+          texture.image.onload = () => {
+            console.log(`${key} 텍스처 onload 이벤트 발생`);
+            setTexturesLoaded(prev => {
+              const newState = { ...prev, [key]: true };
+              console.log(`${key} 텍스처 로딩 완료 (onload) - 상태 업데이트:`, newState);
+              return newState;
+            });
+          };
+        }
+      }
+    };
+
+    checkTextureLoaded(frontTex, 'front');
+    checkTextureLoaded(backTex, 'back');
+    checkTextureLoaded(leftTex, 'left');
+    checkTextureLoaded(rightTex, 'right');
+    checkTextureLoaded(ceilingTex, 'ceiling');
+    checkTextureLoaded(floorTex, 'floor');
   }, [frontTex, backTex, leftTex, rightTex, ceilingTex, floorTex]);
 
-  // wallButtonData를 컴포넌트 내부로 이동
+  // wallButtonData를 로컬 경로로 변경
   const wallButtonData = {
     'front': [
-      { key: 'btn_p_go',       src: `${S3_BASE_URL}/btn_p_go.png`,       hoverSrc: `${S3_BASE_URL}/btn_p_go_hover.png` },
-      { key: 'btn_p_tree',     src: `${S3_BASE_URL}/btn_p_tree.png`,     hoverSrc: `${S3_BASE_URL}/btn_p_tree_hover.png` },
-      { key: 'btn_p_note',     src: `${S3_BASE_URL}/btn_p_note.png`,     hoverSrc: `${S3_BASE_URL}/btn_p_note_hover.png` },
-      { key: 'btn_p_pavilion', src: `${S3_BASE_URL}/btn_p_pavilion.png`, hoverSrc: `${S3_BASE_URL}/btn_p_pavilion_hover.png` }
+      { key: 'btn_p_go',       src: '/images/buttons/wall_photo_btn/btn_p_go.png',       hoverSrc: '/images/buttons/wall_photo_btn/btn_p_go_hover.png' },
+      { key: 'btn_p_tree',     src: '/images/buttons/wall_photo_btn/btn_p_tree.png',     hoverSrc: '/images/buttons/wall_photo_btn/btn_p_tree_hover.png' },
+      { key: 'btn_p_note',     src: '/images/buttons/wall_photo_btn/btn_p_note.png',     hoverSrc: '/images/buttons/wall_photo_btn/btn_p_note_hover.png' },
+      { key: 'btn_p_pavilion', src: '/images/buttons/wall_photo_btn/btn_p_pavilion.png', hoverSrc: '/images/buttons/wall_photo_btn/btn_p_pavilion_hover.png' }
     ],
     'back': [
-      { key: 'btn_w_bridge', src: `${S3_BASE_URL}/btn_w_bridge.png`, hoverSrc: `${S3_BASE_URL}/btn_w_bridge_hover.png` },
-      { key: 'btn_w_walk',   src: `${S3_BASE_URL}/btn_w_walk.png`,   hoverSrc: `${S3_BASE_URL}/btn_w_walk_hover.png` },
-      { key: 'btn_w_sun',    src: `${S3_BASE_URL}/btn_w_sun.png`,    hoverSrc: `${S3_BASE_URL}/btn_w_sun_hover.png` },
-      { key: 'btn_w_sign',   src: `${S3_BASE_URL}/btn_w_sign.png`,   hoverSrc: `${S3_BASE_URL}/btn_w_sign_hover.png` },
+      { key: 'btn_w_bridge', src: '/images/buttons/wall_walk_btn/btn_w_bridge.png', hoverSrc: '/images/buttons/wall_walk_btn/btn_w_bridge_hover.png' },
+      { key: 'btn_w_walk',   src: '/images/buttons/wall_walk_btn/btn_w_walk.png',   hoverSrc: '/images/buttons/wall_walk_btn/btn_w_walk_hover.png' },
+      { key: 'btn_w_sun',    src: '/images/buttons/wall_walk_btn/btn_w_sun.png',    hoverSrc: '/images/buttons/wall_walk_btn/btn_w_sun_hover.png' },
+      { key: 'btn_w_sign',   src: '/images/buttons/wall_walk_btn/btn_w_sign.png',   hoverSrc: '/images/buttons/wall_walk_btn/btn_w_sign_hover.png' },
     ],
     'left': [
-      { key: 'btn_b_busstop', src: `${S3_BASE_URL}/btn_b_busstop.png`, hoverSrc: `${S3_BASE_URL}/btn_b_busstop_hover.png` },
-      { key: 'btn_b_bus',     src: `${S3_BASE_URL}/btn_b_bus.png`,     hoverSrc: `${S3_BASE_URL}/btn_b_bus_hover.png` },
-      { key: 'btn_b_home',    src: `${S3_BASE_URL}/btn_b_home.png`,    hoverSrc: `${S3_BASE_URL}/btn_b_home_hover.png` },
+      { key: 'btn_b_busstop', src: '/images/buttons/wall_bus-stop_btn/btn_b_busstop.png', hoverSrc: '/images/buttons/wall_bus-stop_btn/btn_b_busstop_hover.png' },
+      { key: 'btn_b_bus',     src: '/images/buttons/wall_bus-stop_btn/btn_b_bus.png',     hoverSrc: '/images/buttons/wall_bus-stop_btn/btn_b_bus_hover.png' },
+      { key: 'btn_b_home',    src: '/images/buttons/wall_bus-stop_btn/btn_b_home.png',    hoverSrc: '/images/buttons/wall_bus-stop_btn/btn_b_home_hover.png' },
     ],
     'right': [
-      { key: 'btn_h_dog',    src: `${S3_BASE_URL}/btn_h_dog.png`,    hoverSrc: `${S3_BASE_URL}/btn_h_dog_hover.png` },
-      { key: 'btn_h_ribbon', src: `${S3_BASE_URL}/btn_h_ribbon.png`, hoverSrc: `${S3_BASE_URL}/btn_h_ribbon_hover.png` },
-      { key: 'btn_h_star',   src: `${S3_BASE_URL}/btn_h_star.png`,   hoverSrc: `${S3_BASE_URL}/btn_h_star_hover.png` },
-      { key: 'btn_h_home',   src: `${S3_BASE_URL}/btn_h_home.png`,   hoverSrc: `${S3_BASE_URL}/btn_h_home_hover.png` },
+      { key: 'btn_h_dog',    src: '/images/buttons/wall_home_btn/btn_h_dog.png',    hoverSrc: '/images/buttons/wall_home_btn/btn_h_dog_hover.png' },
+      { key: 'btn_h_ribbon', src: '/images/buttons/wall_home_btn/btn_h_ribbon.png', hoverSrc: '/images/buttons/wall_home_btn/btn_h_ribbon_hover.png' },
+      { key: 'btn_h_star',   src: '/images/buttons/wall_home_btn/btn_h_star.png',   hoverSrc: '/images/buttons/wall_home_btn/btn_h_star_hover.png' },
+      { key: 'btn_h_home',   src: '/images/buttons/wall_home_btn/btn_h_home.png',   hoverSrc: '/images/buttons/wall_home_btn/btn_h_home_hover.png' },
     ],
     'ceiling': [
-      { key: 'btn_c_lamp',   src: `${S3_BASE_URL}/btn_c_lamp.png`,   hoverSrc: `${S3_BASE_URL}/btn_c_lamp_hover.png` },
-      { key: 'btn_c_heart',  src: `${S3_BASE_URL}/btn_c_heart.png`,  hoverSrc: `${S3_BASE_URL}/btn_c_heart_hover.png` },
+      { key: 'btn_c_lamp',   src: '/images/buttons/wall_ceiling_btn/btn_c_lamp.png',   hoverSrc: '/images/buttons/wall_ceiling_btn/btn_c_lamp_hover.png' },
+      { key: 'btn_c_heart',  src: '/images/buttons/wall_ceiling_btn/btn_c_heart.png',  hoverSrc: '/images/buttons/wall_ceiling_btn/btn_c_heart_hover.png' },
     ],
     'floor': [
-      { key: 'btn_f_rug',    src: `${S3_BASE_URL}/btn_f_rug.png`,    hoverSrc: `${S3_BASE_URL}/btn_f_rug_hover.png` },
-      { key: 'btn_f_phone',  src: `${S3_BASE_URL}/btn_f_phone.png`,  hoverSrc: `${S3_BASE_URL}/btn_f_phone_hover.png` },
+      { key: 'btn_f_rug',    src: '/images/buttons/wall_floor_btn/btn_f_rug.png',    hoverSrc: '/images/buttons/wall_floor_btn/btn_f_rug_hover.png' },
+      { key: 'btn_f_phone',  src: '/images/buttons/wall_floor_btn/btn_f_phone.png',  hoverSrc: '/images/buttons/wall_floor_btn/btn_f_phone_hover.png' },
     ],
   };
 
@@ -422,91 +559,158 @@ const Room = ({
   return (
     <>
       {/* 조명 추가 */}
-      <ambientLight intensity={2.0} color="#ffffff" />
-      <directionalLight position={[0, 100, 0]} intensity={1.5} />
-      <directionalLight position={[0, -100, 0]} intensity={0.5} />
-      <directionalLight position={[100, 0, 0]} intensity={0.8} />
-      <directionalLight position={[-100, 0, 0]} intensity={0.8} />
+      <ambientLight intensity={3.0} color="#ffffff" />
+      <directionalLight position={[0, 100, 0]} intensity={2.0} />
+      <directionalLight position={[0, -100, 0]} intensity={1.0} />
+      <directionalLight position={[100, 0, 0]} intensity={1.5} />
+      <directionalLight position={[-100, 0, 0]} intensity={1.5} />
       {/* 벽과 기본 구조 */}
       <group ref={buttonRef}>
         {/* 벽들 */}
         {[
-          { pos: [0, 0, -roomDepth / 2], rot: [0, 0, 0], tex: frontTex, type: 'front' },
-          { pos: [0, 0, roomDepth / 2], rot: [0, Math.PI, 0], tex: backTex, type: 'back' },
-          { pos: [-roomWidth / 2, 0, 0], rot: [0, Math.PI / 2, 0], tex: leftTex, type: 'left' },
-          { pos: [roomWidth / 2, 0, 0], rot: [0, -Math.PI / 2, 0], tex: rightTex, type: 'right' },
-          { pos: [0, roomHeight / 2, 0], rot: [Math.PI / 2, 0, 0], tex: ceilingTex, type: 'ceiling' },
-          { pos: [0, -roomHeight / 2, 0], rot: [-Math.PI / 2, 0, 0], tex: floorTex, type: 'floor' },
-        ].map((wall, i) => (
-          <group key={i} position={wall.pos} rotation={wall.rot}>
-            <mesh>
-              <planeGeometry args={wall.type === 'ceiling' || wall.type === 'floor' ? [roomWidth, roomDepth] : [roomWidth, roomHeight]} />
-              <meshStandardMaterial 
-                map={wall.tex}
-                color={wall.tex ? undefined : (wall.type === 'front' ? '#ff0000' : wall.type === 'back' ? '#00ff00' : wall.type === 'left' ? '#0000ff' : wall.type === 'right' ? '#ffff00' : wall.type === 'ceiling' ? '#ff00ff' : '#00ffff')}
-                roughness={0.7}
-                metalness={0.12}
-                side={THREE.FrontSide}
-              />
-            </mesh>
-            {/* 벽 중앙에 버튼 추가 - 천장과 바닥도 포함 */}
-            {wallButtonData[wall.type]?.map((btn, idx) => {
-              let z;
-              let pos = [0, 0, 0];
-              
-              // 천장 버튼 위치 조정
-              if (wall.type === 'ceiling') {
-                z = -0.1 - idx * 0.05; // 천장은 아래쪽으로 더 멀리, 인덱스별로 간격
-                pos = [0, 0, z];
-              }
-              // 바닥 버튼 위치 조정  
-              else if (wall.type === 'floor') {
-                z = 0.1 + idx * 0.05; // 바닥은 위쪽으로 더 멀리, 인덱스별로 간격
-                pos = [0, 0, z]; // 중앙에 그대로 배치
-              }
-              // 기존 벽 버튼들
-              else if (wall.type === 'front' && btn.src.includes('btn_p_tree')) {
-                z = -0.05;
-              } else if (wall.type === 'back' && btn.key === 'btn_w_sign') {
-                z = 0.15; // Back 벽은 180도 회전되어 있어서 큰 숫자가 앞으로
-              } else if (wall.type === 'back' && btn.key === 'btn_w_bridge') {
-                z = 0.10; // 두 번째
-              } else if (wall.type === 'back' && btn.key === 'btn_w_sun') {
-                z = 0.05; // 세 번째
-              } else if (wall.type === 'back' && btn.key === 'btn_w_walk') {
-                z = 0.01; // 가장 뒤로
-              } else if (wall.type === 'right' && btn.key === 'btn_h_home') {
-                z = 0.01; // btn_h_home은 가장 뒤로
-              } else {
-                let baseZ = 0.01;
-                if (wall.type === 'front' && btn.src.includes('btn_p_go')) baseZ = 0.02;
-                if (wall.type === 'right' && btn.key === 'btn_h_home') {
-                  z = 0.01; // btn_h_home은 가장 뒤로
-                } else {
-                  z = baseZ + idx * 0.01;
+          { pos: [0, 0, -roomDepth / 2], rot: [0, 0, 0], type: 'front' },
+          { pos: [0, 0, roomDepth / 2], rot: [0, Math.PI, 0], type: 'back' },
+          { pos: [-roomWidth / 2, 0, 0], rot: [0, Math.PI / 2, 0], type: 'left' },
+          { pos: [roomWidth / 2, 0, 0], rot: [0, -Math.PI / 2, 0], type: 'right' },
+        ].map((wall, i) => {
+          const isLoaded = texturesLoaded[wall.type];
+          const material = materials[wall.type];
+          console.log(`벽 렌더링: ${wall.type}, 로딩됨: ${isLoaded}, material:`, material);
+          
+          // 텍스처가 로딩되지 않았으면 렌더링하지 않음
+          if (!isLoaded || !material) {
+            console.log(`벽 ${wall.type} 텍스처 미로딩으로 렌더링 스킵`);
+            return null;
+          }
+          
+          return (
+            <group key={i} position={wall.pos} rotation={wall.rot}>
+              <mesh
+                name={`wall-${wall.type}`}
+                visible={true}
+                renderOrder={0}
+                onPointerDown={() => console.log('벽 mesh 클릭됨', wall.type)}
+              >
+                <boxGeometry args={[roomWidth, roomHeight, 0.2]} />
+                <primitive object={material} />
+              </mesh>
+              {/* 벽 중앙에 버튼 추가 */}
+              {wallButtonData[wall.type]?.map((btn, idx) => {
+                let z = 0.3 + idx * 0.01;
+                let pos = [0, 0, z];
+                return (
+                  <Button
+                    key={btn.key}
+                    type={`${wall.type}_btn_${idx}`}
+                    buttonKey={btn.key}
+                    position={pos}
+                    src={btn.src}
+                    hoverSrc={btn.src.replace(/\.png$/, '_hover.png')}
+                    wallType={wall.type}
+                    setHoveredObject={setHoveredObject}
+                    hoveredObject={hoveredObject}
+                    controlsRef={buttonRef}
+                    setSelectedButton={setSelectedButton}
+                    animateCamera={animateCamera}
+                    forceVisible={true}
+                  />
+                );
+              })}
+            </group>
+          );
+        })}
+        
+        {/* 천장 - 완전히 독립적인 컴포넌트 */}
+        {texturesLoaded.ceiling && materials.ceiling && (
+          <group key="ceiling-group" position={[0, roomHeight / 2, 0]} rotation={[Math.PI / 2, 0, 0]}>
+            <mesh
+              name="ceiling"
+              visible={true}
+              renderOrder={0}
+              onPointerDown={() => console.log('천장 mesh 클릭됨')}
+              ref={(ref) => {
+                if (ref) {
+                  console.log('천장 mesh 생성됨:', ref);
+                  console.log('천장 mesh material:', ref.material);
+                  console.log('천장 mesh visible:', ref.visible);
+                  console.log('천장 mesh position:', ref.position);
+                  console.log('천장 mesh rotation:', ref.rotation);
                 }
-                pos = [0, 0, z];
-              }
-              
+              }}
+            >
+              <planeGeometry args={[roomWidth, roomDepth]} />
+              <primitive object={materials.ceiling} />
+            </mesh>
+            {/* 천장 버튼 */}
+            {wallButtonData.ceiling?.map((btn, idx) => {
+              let z = 0.5 + idx * 0.05;
+              let pos = [0, 0, z];
               return (
                 <Button
                   key={btn.key}
-                  type={`${wall.type}_btn_${idx}`}
+                  type={`ceiling_btn_${idx}`}
                   buttonKey={btn.key}
                   position={pos}
                   src={btn.src}
                   hoverSrc={btn.src.replace(/\.png$/, '_hover.png')}
-                  wallType={wall.type}
+                  wallType="ceiling"
                   setHoveredObject={setHoveredObject}
                   hoveredObject={hoveredObject}
                   controlsRef={buttonRef}
                   setSelectedButton={setSelectedButton}
                   animateCamera={animateCamera}
+                  forceVisible={true}
                 />
               );
             })}
           </group>
-        ))}
+        )}
+        
+        {/* 바닥 - 완전히 독립적인 컴포넌트 */}
+        {texturesLoaded.floor && materials.floor && (
+          <group key="floor-group" position={[0, -roomHeight / 2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh
+              name="floor"
+              visible={true}
+              renderOrder={0}
+              onPointerDown={() => console.log('바닥 mesh 클릭됨')}
+              ref={(ref) => {
+                if (ref) {
+                  console.log('바닥 mesh 생성됨:', ref);
+                  console.log('바닥 mesh material:', ref.material);
+                  console.log('바닥 mesh visible:', ref.visible);
+                  console.log('바닥 mesh position:', ref.position);
+                  console.log('바닥 mesh rotation:', ref.rotation);
+                }
+              }}
+            >
+              <planeGeometry args={[roomWidth, roomDepth]} />
+              <primitive object={materials.floor} />
+            </mesh>
+            {/* 바닥 버튼 */}
+            {wallButtonData.floor?.map((btn, idx) => {
+              let z = 0.5 + idx * 0.05;
+              let pos = [0, 0.01, z];
+              return (
+                <Button
+                  key={btn.key}
+                  type={`floor_btn_${idx}`}
+                  buttonKey={btn.key}
+                  position={pos}
+                  src={btn.src}
+                  hoverSrc={btn.src.replace(/\.png$/, '_hover.png')}
+                  wallType="floor"
+                  setHoveredObject={setHoveredObject}
+                  hoveredObject={hoveredObject}
+                  controlsRef={buttonRef}
+                  setSelectedButton={setSelectedButton}
+                  animateCamera={animateCamera}
+                  forceVisible={true}
+                />
+              );
+            })}
+          </group>
+        )}
       </group>
     </>
   );
@@ -516,7 +720,7 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
   const [isHovered, setIsHovered] = useState(false);
   const buttonRef = useRef();
   const [outlineReady, setOutlineReady] = useState(false);
-  const [cursor, setCursor] = useState(`url(${S3_BASE_URL}/cursor.png) 16 44, auto`);
+  const [cursor, setCursor] = useState(`url(/images/cursor.png) 16 44, auto`);
   const [hoveredObject, setHoveredObject] = useState(null);
   const [selectedButton, setSelectedButton] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -642,10 +846,11 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
       <div
+        className="canvas-container"
         style={{
           width: '100%',
           height: '100%',
-          cursor: isHovered ? `url(${S3_BASE_URL}/cursor-click.png) 16 44, auto` : `url(${S3_BASE_URL}/cursor.png) 16 44, auto`,
+          cursor: isHovered ? `url(/images/cursor-click.png) 16 44, auto` : `url(/images/cursor.png) 16 44, auto`,
           position: 'relative',
           zIndex: 1,
           pointerEvents: selectedButton ? 'none' : 'auto',
@@ -654,15 +859,19 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
         <Canvas
           gl={{
             antialias: true,
-            powerPreference: 'high-performance'
+            powerPreference: 'high-performance',
+            clearColor: [0.1, 0.1, 0.1, 1]
           }}
         camera={{ 
             position: INITIAL_CAMERA_POSITION,
             fov: INITIAL_CAMERA_FOV,
+            near: 0.1,
+            far: 1000
           }}
-          onCreated={({ camera }) => {
+          onCreated={({ camera, gl }) => {
             camera.lookAt(INITIAL_CAMERA_LOOKAT);
             camera.layers.enable(1);
+            gl.setClearColor(0x1a1a1a, 1);
           }}
         >
           <OrbitControls
