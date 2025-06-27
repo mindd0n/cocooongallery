@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './HomeContent.css';
 
 const HomeContent = () => {
@@ -9,11 +9,15 @@ const HomeContent = () => {
     icon_q: 4,
   });
   const imageDataRef = useRef({});
-  const iconRefs = {
-    icon_o: useRef(null),
-    icon_p: useRef(null),
-    icon_q: useRef(null),
-  };
+  const iconRef_o = useRef(null);
+  const iconRef_p = useRef(null);
+  const iconRef_q = useRef(null);
+  
+  const iconRefs = useMemo(() => ({
+    icon_o: iconRef_o,
+    icon_p: iconRef_p,
+    icon_q: iconRef_q,
+  }), []);
 
   useEffect(() => {
     Object.entries(iconRefs).forEach(([id, ref]) => {
@@ -29,7 +33,7 @@ const HomeContent = () => {
         imageDataRef.current[id] = ctx.getImageData(0, 0, img.width, img.height).data;
       };
     });
-  }, []);
+  }, [iconRefs]);
 
   // iframe 메시지 이벤트 리스너 추가
   useEffect(() => {

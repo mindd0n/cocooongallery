@@ -1,74 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import PavilionContent from './content/PavilionContent.jsx';
 import HomeContent from './content/HomeContent.jsx';
-import DiaryContent from './content/DiaryContent.jsx';
 
 // S3 기본 URL
 const S3_BASE_URL = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media';
-
-// 비디오 팝업 컴포넌트
-const VideoPopup = ({ videoSrc, onClose }) => {
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 2000,
-      }}
-      onClick={onClose}
-    >
-      <div
-        style={{
-          position: 'relative',
-          width: '80vw',
-          height: '80vh',
-          maxWidth: '1200px',
-          maxHeight: '800px',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >ㅈ
-        <button
-          onClick={onClose}
-          style={{
-            position: 'absolute',
-            top: '-15px',
-            right: '-15px',
-            background: 'white',
-            color: 'black',
-            border: '2px solid #333',
-            borderRadius: '50%',
-            width: '35px',
-            height: '35px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            zIndex: 2001,
-          }}
-        >
-          X
-        </button>
-        <video
-          src={videoSrc}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
-          }}
-          controls
-          loop
-          playsInline
-        />
-      </div>
-    </div>
-  );
-};
 
 const ContentMap = {
   // Pavilion
@@ -135,14 +70,11 @@ const TreeContent = () => {
 const StarContent = () => {
   console.log('StarContent rendering');
   
-  const [galleryReady, setGalleryReady] = useState(false);
-
   useEffect(() => {
     // 컴포넌트가 마운트되면 바로 갤러리 준비
     setTimeout(() => {
       const section = document.getElementById("gallery");
       section?.scrollIntoView({ behavior: "smooth" });
-      setGalleryReady(true);
     }, 100);
   }, []);
 
@@ -279,40 +211,36 @@ const SunContent = () => {
   );
 };
 
-const GenericContent = ({ type, src, onClose, objectFit = 'contain' }) => {
+const GenericContent = ({ type, src, onClose, objectFit = 'contain', buttonId }) => {
   const baseStyle = {
     width: '100%',
     height: '100%',
-    border: 'none',
+    objectFit: objectFit,
+    display: 'block'
   };
 
   switch (type) {
     case 'video':
       return (
-        <video 
-          src={src} 
-          style={{ 
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain' 
-          }} 
-          controls loop playsInline 
+        <video
+          src={src}
+          style={baseStyle}
+          controls
+          loop
+          playsInline
         />
       );
     case 'iframe':
       return (
-        <iframe 
-          src={src} 
-          style={{ 
+        <iframe
+          src={src}
+          style={{
             width: '100%',
             height: '100%',
             border: 'none',
-            minHeight: '500px',
-            backgroundColor: 'transparent',
-            zIndex: 15,
-            position: 'relative'
-          }} 
-          title="content" 
+            minHeight: '600px'
+          }}
+          title={`Content for ${buttonId || 'unknown'}`}
         />
       );
     case 'image':
@@ -324,44 +252,8 @@ const GenericContent = ({ type, src, onClose, objectFit = 'contain' }) => {
   }
 };
 
-const CustomContent = ({ buttonId, onClose }) => {
-  const info = ContentMap[buttonId];
-  if (!info) return <div>Unknown custom content: {buttonId}</div>;
-  if (buttonId === 'btn_c_heart') {
-    return (
-      <img
-        src="/content/btn_c_heart/U.PNG"
-        alt="하트 이미지"
-        style={{ maxWidth: '100%', maxHeight: '80vh', display: 'block', margin: '0 auto' }}
-      />
-    );
-  }
-  if (info.type === 'iframe' && info.src) {
-    return (
-      <iframe
-        src={info.src}
-        style={{ width: '100%', height: '100%', border: 'none', background: 'white' }}
-        title={buttonId}
-      />
-    );
-  }
-  if (info.type === 'image' && info.src) {
-    return (
-      <img
-        src={info.src}
-        alt={buttonId}
-        style={{ maxWidth: '100%', maxHeight: '80vh', display: 'block', margin: '0 auto' }}
-      />
-    );
-  }
-  // fallback
-  return null;
-};
-
 const ContentDisplay = ({ buttonId, onClose }) => {
   const [show, setShow] = useState(false);
-  const [showVideoA, setShowVideoA] = useState(false);
-  const [showVideoB, setShowVideoB] = useState(false);
   const contentInfo = ContentMap[buttonId];
 
   useEffect(() => {
@@ -589,7 +481,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
                 </div>
               );
             } else {
-              return <GenericContent type={contentInfo.type} src={contentInfo.src} onClose={onClose} />;
+              return <GenericContent type={contentInfo.type} src={contentInfo.src} onClose={onClose} buttonId={buttonId} />;
             }
           })()}
         </div>

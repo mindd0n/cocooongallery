@@ -4,6 +4,9 @@ import * as THREE from 'three';
 // S3 기본 URL
 const S3_BASE_URL = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media';
 
+// 로컬 기본 URL (public 폴더 기준)
+const LOCAL_BASE_URL = '';
+
 // 벽/천장/바닥별 plane 전체를 꽉 채우는 크기 반환 (Room.jsx와 동일하게 맞춤)
 const WALL_SIZES = {
   front:  [166.68, 150],   // roomWidth, roomHeight
@@ -13,15 +16,15 @@ const WALL_SIZES = {
 };
 
 // 로컬 경로를 S3 경로로 변환하는 함수
-const convertToS3Path = (localPath) => {
-  if (localPath.startsWith('http')) {
-    return localPath; // 이미 URL인 경우 그대로 반환
-  }
-  
-  // 로컬 경로에서 파일명 추출
-  const fileName = localPath.split('/').pop();
-  return `${S3_BASE_URL}/${fileName}`;
-};
+// const convertToS3Path = (localPath) => {
+//   if (localPath.startsWith('http')) {
+//     return localPath; // 이미 URL인 경우 그대로 반환
+//   }
+//   
+//   // 로컬 경로에서 파일명 추출
+//   const fileName = localPath.split('/').pop();
+//   return `${S3_BASE_URL}/${fileName}`;
+// };
 
 export const useButtonImageData = (src, wallType) => {
   const [size, setSize] = useState([1, 1]);

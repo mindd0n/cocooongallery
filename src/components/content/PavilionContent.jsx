@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import './PavilionContent.css';
-import LittleForest from './svg/LittleForest';
 // 다른 SVG 컴포넌트 import
 // import ForrestGump from './svg/ForrestGump';
 // import KamomeKitchen from './svg/KamomeKitchen';
