@@ -26,10 +26,15 @@ const BGMControl = () => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
+        setIsPlaying(false);
       } else {
-        audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+        audioRef.current.play().catch(e => {
+          console.error("Audio play failed:", e);
+          // 사용자에게 오디오 재생 실패 알림 (선택사항)
+          alert('오디오 재생에 실패했습니다. 브라우저 설정을 확인해주세요.');
+        });
+        setIsPlaying(true);
       }
-      setIsPlaying((prev) => !prev);
     }
   };
 

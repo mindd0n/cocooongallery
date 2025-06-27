@@ -4,7 +4,6 @@ import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { EffectComposer, Outline } from '@react-three/postprocessing';
 import './styles.css';
-import { useTexture } from '@react-three/drei';
 import { useButtonImageData } from '../hooks/useButtonImageData';
 import ContentDisplay from './ContentDisplay.jsx';
 import InteractiveGoButton from './InteractiveGoButton.jsx';
@@ -56,7 +55,7 @@ const INITIAL_CAMERA_POSITION = new THREE.Vector3(0, viewerHeight, roomDepth / 2
 const INITIAL_CAMERA_LOOKAT = new THREE.Vector3(0, 0, 0);
 const INITIAL_CAMERA_FOV = 75;
 
-// 벽 텍스처 경로를 객체로 관리 (로컬 경로로 변경)
+// 벽 텍스처 경로를 객체로 관리 (로컬 경로로 임시 변경)
 const wallTexturePaths = {
   front: '/images/walls/wall_photo.png',
   back: '/images/walls/wall_walk.png',
@@ -351,19 +350,6 @@ const Room = ({
   const ceilingTex = useLoader(THREE.TextureLoader, wallTexturePaths.ceiling);
   const floorTex = useLoader(THREE.TextureLoader, wallTexturePaths.floor);
   
-  // 텍스처 로딩 상태 확인
-  useEffect(() => {
-    console.log('=== 텍스처 로딩 상태 확인 ===');
-    console.log('frontTex:', frontTex, 'loaded:', frontTex?.isTexture);
-    console.log('backTex:', backTex, 'loaded:', backTex?.isTexture);
-    console.log('leftTex:', leftTex, 'loaded:', leftTex?.isTexture);
-    console.log('rightTex:', rightTex, 'loaded:', rightTex?.isTexture);
-    console.log('ceilingTex:', ceilingTex, 'loaded:', ceilingTex?.isTexture);
-    console.log('floorTex:', floorTex, 'loaded:', floorTex?.isTexture);
-    console.log('=== 경로 확인 ===');
-    console.log('wallTexturePaths:', wallTexturePaths);
-  }, [frontTex, backTex, leftTex, rightTex, ceilingTex, floorTex]);
-
   const wallTextures = {
     front: frontTex,
     back: backTex,
@@ -373,16 +359,21 @@ const Room = ({
     floor: floorTex,
   };
   
-  // 모든 텍스처 로딩 후 콜백
+  // 텍스처 상태 디버깅
   useEffect(() => {
-    const manager = new THREE.LoadingManager();
-    manager.onLoad = () => {
-      console.log('모든 텍스처 로딩 완료');
-    };
-    manager.onError = (url) => {
-      console.error('텍스처 로딩 실패:', url);
-    };
-  }, []);
+    console.log('=== 텍스처 상태 확인 ===');
+    console.log('frontTex:', frontTex, 'isTexture:', frontTex?.isTexture, 'image:', frontTex?.image);
+    console.log('backTex:', backTex, 'isTexture:', backTex?.isTexture, 'image:', backTex?.image);
+    console.log('leftTex:', leftTex, 'isTexture:', leftTex?.isTexture, 'image:', leftTex?.image);
+    console.log('rightTex:', rightTex, 'isTexture:', rightTex?.isTexture, 'image:', rightTex?.image);
+    console.log('ceilingTex:', ceilingTex, 'isTexture:', ceilingTex?.isTexture, 'image:', ceilingTex?.image);
+    console.log('floorTex:', floorTex, 'isTexture:', floorTex?.isTexture, 'image:', floorTex?.image);
+    
+    // 텍스처가 로딩되면 이미지 정보도 출력
+    if (frontTex?.image) {
+      console.log('front 텍스처 이미지 로딩 완료:', frontTex.image.src);
+    }
+  }, [frontTex, backTex, leftTex, rightTex, ceilingTex, floorTex]);
 
   // wallButtonData를 컴포넌트 내부로 이동
   const wallButtonData = {
@@ -452,6 +443,7 @@ const Room = ({
               <planeGeometry args={wall.type === 'ceiling' || wall.type === 'floor' ? [roomWidth, roomDepth] : [roomWidth, roomHeight]} />
               <meshStandardMaterial 
                 map={wall.tex}
+                color={wall.tex ? undefined : (wall.type === 'front' ? '#ff0000' : wall.type === 'back' ? '#00ff00' : wall.type === 'left' ? '#0000ff' : wall.type === 'right' ? '#ffff00' : wall.type === 'ceiling' ? '#ff00ff' : '#00ffff')}
                 roughness={0.7}
                 metalness={0.12}
                 side={THREE.FrontSide}

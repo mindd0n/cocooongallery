@@ -561,14 +561,14 @@ const ContentDisplay = ({ buttonId, onClose }) => {
                       onClick={onClose}
                       style={{
                         position: 'absolute',
-                        top: '24px',
-                        left: '24px',
+                        top: window.innerWidth <= 768 ? '16px' : window.innerWidth >= 1024 ? '32px' : '24px',
+                        left: window.innerWidth <= 768 ? '16px' : window.innerWidth >= 1024 ? '32px' : '24px',
                         zIndex: 3100,
                         background: 'none',
                         color: '#191F28',
                         border: 'none',
                         borderRadius: 0,
-                        fontSize: '18px',
+                        fontSize: window.innerWidth <= 480 ? '14px' : window.innerWidth <= 768 ? '16px' : window.innerWidth >= 1024 ? '20px' : '18px',
                         fontFamily: 'Pretendard, sans-serif',
                         fontWeight: 300,
                         padding: 0,
@@ -581,29 +581,6 @@ const ContentDisplay = ({ buttonId, onClose }) => {
                     >
                       〈 돌아가기
                     </button>
-                    <style jsx>{`
-                      @media (max-width: 768px) {
-                        button {
-                          top: 16px !important;
-                          left: 16px !important;
-                          font-size: 16px !important;
-                        }
-                      }
-                      @media (max-width: 480px) {
-                        button {
-                          top: 12px !important;
-                          left: 12px !important;
-                          font-size: 14px !important;
-                        }
-                      }
-                      @media (min-width: 1024px) {
-                        button {
-                          top: 32px !important;
-                          left: 32px !important;
-                          font-size: 20px !important;
-                        }
-                      }
-                    `}</style>
                     <iframe
                       src={ContentMap[buttonId].src}
                       style={{
@@ -629,43 +606,15 @@ const ContentDisplay = ({ buttonId, onClose }) => {
             className="back-button"
             style={{
               position:'absolute', 
-              right:'1%',
-              bottom:'8%',
-              width:'100px',
+              right: window.innerWidth <= 768 ? '3%' : window.innerWidth <= 1024 ? '2%' : '1%',
+              bottom: window.innerWidth <= 768 ? '4%' : window.innerWidth <= 1024 ? '6%' : '8%',
+              width: window.innerWidth <= 768 ? '60px' : window.innerWidth <= 1024 ? '80px' : '100px',
               height:'auto', 
               cursor:'pointer',
               zIndex: 2,
             }}
             onClick={handleClose}
           />
-          
-          <style jsx>{`
-            .back-button {
-              position: absolute;
-              right: 1%;
-              bottom: 8%;
-              width: 100px;
-              height: auto;
-              cursor: pointer;
-              z-index: 2;
-            }
-            
-            @media (max-width: 1024px) {
-              .back-button {
-                width: 80px;
-                right: 2%;
-                bottom: 6%;
-              }
-            }
-            
-            @media (max-width: 768px) {
-              .back-button {
-                width: 60px;
-                right: 3%;
-                bottom: 4%;
-              }
-            }
-          `}</style>
         </div>
         )}
       </div>
@@ -673,13 +622,13 @@ const ContentDisplay = ({ buttonId, onClose }) => {
       {/* 비디오 팝업들 */}
       {showVideoA && (
         <VideoPopup
-          videoSrc="/assets/deploy_media/L.mp4"
+          videoSrc={`${S3_BASE_URL}/L.mp4`}
           onClose={() => setShowVideoA(false)}
         />
       )}
       {showVideoB && (
         <VideoPopup
-          videoSrc="/assets/deploy_media/M.mp4"
+          videoSrc={`${S3_BASE_URL}/M.mp4`}
           onClose={() => setShowVideoB(false)}
         />
       )}
