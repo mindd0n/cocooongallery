@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import PavilionContent from './content/PavilionContent.jsx';
 import HomeContent from './content/HomeContent.jsx';
 import DiaryContent from './content/DiaryContent.jsx';
-import { Canvas } from '@react-three/fiber';
-import InteractiveGoButton from './InteractiveGoButton.jsx';
 
 // S3 기본 URL
 const S3_BASE_URL = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media';
@@ -512,14 +510,9 @@ const ContentDisplay = ({ buttonId, onClose }) => {
           {(() => {
             if (buttonId === 'btn_p_go') {
               return (
-                <Canvas style={{ width: '100%', height: '100%', background: 'transparent' }} camera={{ position: [0, 0, 15], fov: 50 }}>
-                  <ambientLight intensity={1.2} />
-                  <InteractiveGoButton 
-                    position={[0, 0, 0]} 
-                    onVideoAOpen={() => setShowVideoA(true)}
-                    onVideoBOpen={() => setShowVideoB(true)}
-                  />
-                </Canvas>
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '2rem' }}>
+                  Go 버튼 인터랙티브 콘텐츠는 현재 지원되지 않습니다.
+                </div>
               );
             } else if (buttonId === 'btn_p_pavilion') {
               return <PavilionContent />;
