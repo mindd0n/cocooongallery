@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import PavilionContent from './content/PavilionContent.jsx';
 import HomeContent from './content/HomeContent.jsx';
 import DiaryContent from './content/DiaryContent.jsx';
+import { Canvas } from '@react-three/fiber';
+import InteractiveGoButton from './InteractiveGoButton.jsx';
 
 // S3 기본 URL
 const S3_BASE_URL = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media';
