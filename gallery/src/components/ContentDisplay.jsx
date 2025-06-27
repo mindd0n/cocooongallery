@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import PavilionContent from './content/PavilionContent.jsx';
 import HomeContent from './content/HomeContent.jsx';
 import './ContentDisplay.css';
+import { Canvas } from '@react-three/fiber';
+import InteractiveGoButton from './InteractiveGoButton.jsx';
 
 // 비디오 팝업 컴포넌트
 const VideoPopup = ({ videoSrc, onClose }) => {

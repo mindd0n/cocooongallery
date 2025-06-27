@@ -9,10 +9,14 @@ const HomeContent = () => {
     icon_q: 4,
   });
   const imageDataRef = useRef({});
+  const iconRef_o = useRef(null);
+  const iconRef_p = useRef(null);
+  const iconRef_q = useRef(null);
+  
   const iconRefs = useMemo(() => ({
-    icon_o: useRef(null),
-    icon_p: useRef(null),
-    icon_q: useRef(null),
+    icon_o: iconRef_o,
+    icon_p: iconRef_p,
+    icon_q: iconRef_q,
   }), []);
 
   useEffect(() => {
