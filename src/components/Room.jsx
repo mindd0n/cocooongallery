@@ -724,6 +724,10 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
   const [restoreView, setRestoreView] = useState(null);
   // const [texturesLoaded, setTexturesLoaded] = useState(false);
 
+  // 기기별 성능 최적화 설정
+  const isMobile = window.innerWidth < 768;
+  const devicePixelRatio = isMobile ? [1, 1.5] : [1, 2];
+
   // 텍스처 로딩 상태 추적
   useEffect(() => {
     if (onLoadingProgress) {
@@ -834,12 +838,17 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
         }}
       >
         <Canvas
+          dpr={devicePixelRatio}
           gl={{
-            antialias: true,
+            antialias: !isMobile, // 모바일에서는 antialias 비활성화로 성능 향상
             powerPreference: 'high-performance',
-            clearColor: [0.1, 0.1, 0.1, 1]
+            clearColor: [0.1, 0.1, 0.1, 1],
+            alpha: false, // 알파 채널 비활성화로 성능 향상
+            stencil: false, // 스텐실 버퍼 비활성화로 성능 향상
+            depth: true,
+            logarithmicDepthBuffer: false // 로그 깊이 버퍼 비활성화로 성능 향상
           }}
-        camera={{ 
+          camera={{ 
             position: INITIAL_CAMERA_POSITION,
             fov: INITIAL_CAMERA_FOV,
             near: 0.1,
@@ -849,6 +858,11 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
             camera.lookAt(INITIAL_CAMERA_LOOKAT);
             camera.layers.enable(1);
             gl.setClearColor(0x1a1a1a, 1);
+            
+            // 모바일에서 추가 성능 최적화
+            if (isMobile) {
+              gl.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+            }
           }}
         >
           <OrbitControls
@@ -859,6 +873,11 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
             minDistance={minDistance}
             maxDistance={maxDistance}
             target={INITIAL_CAMERA_LOOKAT}
+            // 모바일에서 터치 컨트롤 최적화
+            enableDamping={!isMobile} // 모바일에서는 댐핑 비활성화로 성능 향상
+            dampingFactor={0.05}
+            rotateSpeed={isMobile ? -0.2 : -0.3} // 모바일에서는 회전 속도 조정
+            zoomSpeed={isMobile ? 0.8 : 1.0} // 모바일에서는 줌 속도 조정
           />
           <Suspense fallback={null}>
             <Room
