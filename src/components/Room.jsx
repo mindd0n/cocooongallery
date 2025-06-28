@@ -556,10 +556,54 @@ const Room = ({
     <>
       {/* 조명 추가 */}
       <ambientLight intensity={3.0} color="#ffffff" />
-      <directionalLight position={[0, 100, 0]} intensity={2.0} />
-      <directionalLight position={[0, -100, 0]} intensity={1.0} />
-      <directionalLight position={[100, 0, 0]} intensity={1.5} />
-      <directionalLight position={[-100, 0, 0]} intensity={1.5} />
+      <directionalLight 
+        position={[0, 100, 0]} 
+        intensity={2.0} 
+        castShadow
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-camera-far={500}
+        shadow-camera-left={-100}
+        shadow-camera-right={100}
+        shadow-camera-top={100}
+        shadow-camera-bottom={-100}
+      />
+      <directionalLight 
+        position={[0, -100, 0]} 
+        intensity={1.0} 
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-far={300}
+        shadow-camera-left={-50}
+        shadow-camera-right={50}
+        shadow-camera-top={50}
+        shadow-camera-bottom={-50}
+      />
+      <directionalLight 
+        position={[100, 0, 0]} 
+        intensity={1.5} 
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-far={300}
+        shadow-camera-left={-50}
+        shadow-camera-right={50}
+        shadow-camera-top={50}
+        shadow-camera-bottom={-50}
+      />
+      <directionalLight 
+        position={[-100, 0, 0]} 
+        intensity={1.5} 
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-far={300}
+        shadow-camera-left={-50}
+        shadow-camera-right={50}
+        shadow-camera-top={50}
+        shadow-camera-bottom={-50}
+      />
       {/* 벽과 기본 구조 */}
       <group ref={buttonRef}>
         {/* 벽들 */}
@@ -839,6 +883,7 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
       >
         <Canvas
           dpr={devicePixelRatio}
+          shadows="soft"
           gl={{
             antialias: !isMobile, // 모바일에서는 antialias 비활성화로 성능 향상
             powerPreference: 'high-performance',
