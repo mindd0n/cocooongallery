@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './HomeContent.css';
 
+const S3_BASE_URL = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media';
+
 const HomeContent = () => {
   const [selectedContent, setSelectedContent] = useState(null);
   const [zIndexOrder, setZIndexOrder] = useState({
@@ -96,9 +98,9 @@ const HomeContent = () => {
     if (!selectedContent) return null;
 
     switch (selectedContent) {
-      case 'icon_o': return <video key="video_o" src="/deploy_videos/O.mp4" style={{ width: '100%', height: '100%', objectFit: 'contain' }} controls autoPlay loop playsInline />;
+      case 'icon_o': return <video key="video_o" src={`${S3_BASE_URL}/O.mp4`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} controls autoPlay loop playsInline />;
       case 'icon_p': return <iframe key="iframe_p" src="/content/btn_h_home/P.수면신문/dist/index.html" style={{ width: '100%', height: '100%', border: 'none', minHeight: '600px' }} title="수면신문" />;
-      case 'icon_q': return <video key="video_q" src="/deploy_videos/Q.mp4" style={{ width: '100%', height: '100%', objectFit: 'contain' }} controls autoPlay loop playsInline />;
+      case 'icon_q': return <video key="video_q" src={`${S3_BASE_URL}/Q.mp4`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} controls autoPlay loop playsInline />;
       default: return null;
     }
   };
