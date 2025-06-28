@@ -147,7 +147,7 @@ const SunContent = () => {
       {/* 메인 이미지 */}
       <img 
         src="/content/btn_w_sun/k.PNG" 
-        alt="Sun Image"
+        alt="Sun"
         className="sun-main-image"
         style={{
           width: '120%',
@@ -181,6 +181,7 @@ const SunContent = () => {
           allowFullScreen="" 
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
           loading="lazy"
+          title="Spotify Playlist"
         />
       </div>
       

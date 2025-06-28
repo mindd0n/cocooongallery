@@ -6,7 +6,6 @@ import { EffectComposer, Outline } from '@react-three/postprocessing';
 import './styles.css';
 import { useButtonImageData } from '../hooks/useButtonImageData';
 import ContentDisplay from './ContentDisplay.jsx';
-import InteractiveGoButton from './InteractiveGoButton.jsx';
 import gsap from 'gsap';
 
 // 로컬 기본 URL (public 폴더 기준)

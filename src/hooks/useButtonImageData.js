@@ -1,12 +1,6 @@
 import { useState, useEffect } from 'react';
 import * as THREE from 'three';
 
-// S3 기본 URL
-const S3_BASE_URL = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media';
-
-// 로컬 기본 URL (public 폴더 기준)
-const LOCAL_BASE_URL = '';
-
 // 벽/천장/바닥별 plane 전체를 꽉 채우는 크기 반환 (Room.jsx와 동일하게 맞춤)
 const WALL_SIZES = {
   front:  [166.68, 150],   // roomWidth, roomHeight
