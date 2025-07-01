@@ -24,23 +24,24 @@
       align-items: center;
       box-sizing: border-box;
       position: relative;
-      gap: 2vh;
+      gap: 1.2vh;
     }
     .top-banner {
-      width: 18%;
-      max-width: 120px;
-      margin-bottom: 2%;
+      width: 10%;
+      max-width: 60px;
+      margin-top: 80px;
+      margin-bottom: 0;
     }
     .content {
-      width: 100%;
-      height: 40vh;
+      width: 90%;
+      height: 32vh;
       display: flex;
       justify-content: center;
       align-items: center;
       overflow-x: auto;
       overflow-y: hidden;
-      margin-bottom: 15px;
-      padding: 0 15px;
+      margin-bottom: 10px;
+      padding: 0 10px;
       /* 스크롤바 숨기기 */
       scrollbar-width: none; /* Firefox */
       -ms-overflow-style: none; /* IE, Edge */
@@ -49,20 +50,24 @@
       display: none; /* Chrome, Safari */
     }
     .content img {
-      height: 100%;
+      height: 80%;
       width: auto;
       display: block;
-      margin-right: 1vw;
+      margin-right: 0.7vw;
+      max-height: 180px;
+      will-change: transform;
+      backface-visibility: hidden;
     }
     .bottom-text {
-      width: 95%;
+      width: 90%;
       text-align: center;
-      font-size: 1.2em;
+      font-size: 1em;
       color: red;
       font-weight: bold;
-      margin-top: 2%;
+      margin-top: 0;
+      margin-bottom: 80px;
       white-space: normal;
-      padding: 0 1%;
+      padding: 0 0.5%;
       font-family: Arial, sans-serif;
     }
 
@@ -199,15 +204,15 @@
     <img src="Connect.png" class="top-banner" id="topBanner" style="display: none;" />
     <img src="scroll-hint.png" class="scroll-hint" id="scrollHint" alt="스크롤 힌트" />
     <div class="content" id="scrollArea">
-      <img src="IMG_0718.PNG" />
-      <img src="IMG_0719.PNG" />
-      <img src="IMG_0720.PNG" />
-      <img src="IMG_0721.PNG" />
-      <img src="IMG_0722.PNG" />
-      <img src="IMG_0723.PNG" />
-      <img src="IMG_0724.PNG" />
-      <img src="IMG_0725.PNG" />
-      <img src="IMG_0726.PNG" />
+      <img src="IMG_0718.PNG" loading="lazy" />
+      <img src="IMG_0719.PNG" loading="lazy" />
+      <img src="IMG_0720.PNG" loading="lazy" />
+      <img src="IMG_0721.PNG" loading="lazy" />
+      <img src="IMG_0722.PNG" loading="lazy" />
+      <img src="IMG_0723.PNG" loading="lazy" />
+      <img src="IMG_0724.PNG" loading="lazy" />
+      <img src="IMG_0725.PNG" loading="lazy" />
+      <img src="IMG_0726.PNG" loading="lazy" />
     </div>
     <div class="bottom-text" id="bottomText" style="display: none;">
       We are one We love each other We are one We love each other We are one We love each other
@@ -270,8 +275,14 @@
         imageNames.forEach(name => {
           const img = document.createElement('img');
           img.src = name;
+          img.loading = 'lazy';
           scrollArea.appendChild(img);
         });
+        // 앞쪽 이미지가 너무 많으면 제거 (최대 40장)
+        const MAX_IMAGES = 40;
+        while (scrollArea.children.length > MAX_IMAGES) {
+          scrollArea.removeChild(scrollArea.firstChild);
+        }
       }
     });
 

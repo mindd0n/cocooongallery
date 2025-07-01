@@ -115,16 +115,18 @@
 }
 
 .pavilion-container {
-    width: 100%;
-    height: 100%;
-    background-size: 80vw auto; /* 2차 팝업창 크기에 맞춰 조정 */
-    background-position: center;
-    background-repeat: no-repeat;
+    /* 팝업창 배경 이미지는 인라인 style에서만 지정, popup_bg 등 중첩 방지 */
+    width: 100vw;
+    height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 2000;
     min-height: 100vh;
+    background-color: transparent !important;
 }
 
 .poster-list {
@@ -171,7 +173,7 @@
 
 .detail-popup-content {
     position: relative;
-    /* 배경 관???거 -> ?식 img가 ?기 결정 */
+    background: transparent !important;
 }
 
 .detail-bg-image { /* ?로 추?: 2?업 배경 ?지 */

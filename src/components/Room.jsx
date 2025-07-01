@@ -202,15 +202,18 @@ const Button = React.memo(function Button({
   animateCamera,
   btnIdx,
   btnTotal,
-  forceVisible
+  forceVisible,
+  polygonOffset,
+  polygonOffsetFactor,
+  polygonOffsetUnits
 }) {
   const isHovered = hoveredObject === buttonKey;
   const [size, texture, image, canvas, ready] = useButtonImageData(isHovered ? hoverSrc : src, wallType);
   const meshRef = useRef();
   
-  const handleClick = useCallback((e) => {
-    // 모든 벽면 버튼 클릭 시 로그
-    console.log(`벽면 버튼 클릭: ${buttonKey}`);
+  const handleDoubleClick = useCallback((e) => {
+    // 모든 벽면 버튼 더블클릭 시 로그
+    console.log(`벽면 버튼 더블클릭: ${buttonKey}`);
     if (!image || !texture || !canvas) return;
     const uv = e.uv;
     if (!uv) return;
@@ -264,7 +267,7 @@ const Button = React.memo(function Button({
       position={position}
       rotation={[0, 0, 0]}
       renderOrder={10}
-      onPointerUp={handleClick}
+      onDoubleClick={handleDoubleClick}
       onPointerMove={handlePointerMove}
       onPointerOut={handlePointerOut}
       visible={forceVisible}
@@ -282,6 +285,9 @@ const Button = React.memo(function Button({
           if (!ref) return;
           console.log(`[${wallType}_btn_${btnIdx}] material 연결됨`, ref, 'map:', ref.map, 'visible:', ref.visible);
         }}
+        polygonOffset={polygonOffset}
+        polygonOffsetFactor={polygonOffsetFactor}
+        polygonOffsetUnits={polygonOffsetUnits}
       />
     </mesh>
   );
@@ -511,31 +517,31 @@ const Room = ({
   // wallButtonData를 로컬 경로로 변경
   const wallButtonData = {
     'front': [
-      { key: 'btn_p_go',       src: '/images/buttons/wall_photo_btn/btn_p_go.png',       hoverSrc: '/images/buttons/wall_photo_btn/btn_p_go_hover.png' },
       { key: 'btn_p_tree',     src: '/images/buttons/wall_photo_btn/btn_p_tree.png',     hoverSrc: '/images/buttons/wall_photo_btn/btn_p_tree_hover.png' },
-      { key: 'btn_p_note',     src: '/images/buttons/wall_photo_btn/btn_p_note.png',     hoverSrc: '/images/buttons/wall_photo_btn/btn_p_note_hover.png' },
-      { key: 'btn_p_pavilion', src: '/images/buttons/wall_photo_btn/btn_p_pavilion.png', hoverSrc: '/images/buttons/wall_photo_btn/btn_p_pavilion_hover.png' }
+      { key: 'btn_p_pavilion', src: '/images/buttons/wall_photo_btn/btn_p_pavilion.png', hoverSrc: '/images/buttons/wall_photo_btn/btn_p_pavilion_hover.png' },
+      { key: 'btn_p_go',       src: '/images/buttons/wall_photo_btn/btn_p_go.png',       hoverSrc: '/images/buttons/wall_photo_btn/btn_p_go_hover.png' },
+      { key: 'btn_p_note',     src: '/images/buttons/wall_photo_btn/btn_p_note.png',     hoverSrc: '/images/buttons/wall_photo_btn/btn_p_note_hover.png' }
     ],
     'back': [
+      { key: 'btn_w_sun',    src: '/images/buttons/wall_walk_btn/btn_w_sun.png',    hoverSrc: '/images/buttons/wall_walk_btn/btn_w_sun_hover.png' },
       { key: 'btn_w_bridge', src: '/images/buttons/wall_walk_btn/btn_w_bridge.png', hoverSrc: '/images/buttons/wall_walk_btn/btn_w_bridge_hover.png' },
       { key: 'btn_w_walk',   src: '/images/buttons/wall_walk_btn/btn_w_walk.png',   hoverSrc: '/images/buttons/wall_walk_btn/btn_w_walk_hover.png' },
-      { key: 'btn_w_sun',    src: '/images/buttons/wall_walk_btn/btn_w_sun.png',    hoverSrc: '/images/buttons/wall_walk_btn/btn_w_sun_hover.png' },
       { key: 'btn_w_sign',   src: '/images/buttons/wall_walk_btn/btn_w_sign.png',   hoverSrc: '/images/buttons/wall_walk_btn/btn_w_sign_hover.png' },
     ],
     'left': [
+      { key: 'btn_b_home',    src: '/images/buttons/wall_bus-stop_btn/btn_b_home.png',    hoverSrc: '/images/buttons/wall_bus-stop_btn/btn_b_home_hover.png' },
       { key: 'btn_b_busstop', src: '/images/buttons/wall_bus-stop_btn/btn_b_busstop.png', hoverSrc: '/images/buttons/wall_bus-stop_btn/btn_b_busstop_hover.png' },
       { key: 'btn_b_bus',     src: '/images/buttons/wall_bus-stop_btn/btn_b_bus.png',     hoverSrc: '/images/buttons/wall_bus-stop_btn/btn_b_bus_hover.png' },
-      { key: 'btn_b_home',    src: '/images/buttons/wall_bus-stop_btn/btn_b_home.png',    hoverSrc: '/images/buttons/wall_bus-stop_btn/btn_b_home_hover.png' },
     ],
     'right': [
-      { key: 'btn_h_dog',    src: '/images/buttons/wall_home_btn/btn_h_dog.png',    hoverSrc: '/images/buttons/wall_home_btn/btn_h_dog_hover.png' },
-      { key: 'btn_h_home',   src: '/images/buttons/wall_home_btn/btn_h_home.png',   hoverSrc: '/images/buttons/wall_home_btn/btn_h_home_hover.png' },
-      { key: 'btn_h_ribbon', src: '/images/buttons/wall_home_btn/btn_h_ribbon.png', hoverSrc: '/images/buttons/wall_home_btn/btn_h_ribbon_hover.png' },
       { key: 'btn_h_star',   src: '/images/buttons/wall_home_btn/btn_h_star.png',   hoverSrc: '/images/buttons/wall_home_btn/btn_h_star_hover.png' },
+      { key: 'btn_h_home',   src: '/images/buttons/wall_home_btn/btn_h_home.png',   hoverSrc: '/images/buttons/wall_home_btn/btn_h_home_hover.png' },
+      { key: 'btn_h_dog',    src: '/images/buttons/wall_home_btn/btn_h_dog.png',    hoverSrc: '/images/buttons/wall_home_btn/btn_h_dog_hover.png' },
+      { key: 'btn_h_ribbon', src: '/images/buttons/wall_home_btn/btn_h_ribbon.png', hoverSrc: '/images/buttons/wall_home_btn/btn_h_ribbon_hover.png' },
     ],
     'ceiling': [
-      { key: 'btn_c_lamp',   src: '/images/buttons/wall_ceiling_btn/btn_c_lamp.png',   hoverSrc: '/images/buttons/wall_ceiling_btn/btn_c_lamp_hover.png' },
-      { key: 'btn_c_heart',  src: '/images/buttons/wall_ceiling_btn/btn_c_heart.png',  hoverSrc: '/images/buttons/wall_ceiling_btn/btn_c_heart_hover.png' },
+      { key: 'btn_c_lamp',   src: '/images/buttons/wall_ceiling_btn/btn_c_lamp.png',   hoverSrc: '/images/buttons/wall_ceiling_btn/btn_c_lamp_hover.png', left: '38%', top: '18%', width: '8%', height: '8%' },
+      { key: 'btn_c_heart',  src: '/images/buttons/wall_ceiling_btn/btn_c_heart.png',  hoverSrc: '/images/buttons/wall_ceiling_btn/btn_c_heart_hover.png', left: '60%', top: '28%', width: '10%', height: '10%' },
     ],
     'floor': [
       { key: 'btn_f_rug',    src: '/images/buttons/wall_floor_btn/btn_f_rug.png',    hoverSrc: '/images/buttons/wall_floor_btn/btn_f_rug_hover.png' },
@@ -615,14 +621,7 @@ const Room = ({
         ].map((wall, i) => {
           const isLoaded = texturesLoaded[wall.type];
           const material = materials[wall.type];
-          console.log(`벽 렌더링: ${wall.type}, 로딩됨: ${isLoaded}, material:`, material);
-          
-          // 텍스처가 로딩되지 않았으면 렌더링하지 않음
-          if (!isLoaded || !material) {
-            console.log(`벽 ${wall.type} 텍스처 미로딩으로 렌더링 스킵`);
-            return null;
-          }
-          
+          if (!isLoaded || !material) return null;
           return (
             <group key={i} position={wall.pos} rotation={wall.rot}>
               <mesh
@@ -634,10 +633,9 @@ const Room = ({
                 <boxGeometry args={[roomWidth, roomHeight, 0.2]} />
                 <primitive object={material} />
               </mesh>
-              {/* 벽 중앙에 버튼 추가 */}
-              {wallButtonData[wall.type]?.map((btn, idx) => {
-                let z = 0.3 + idx * 0.01;
-                let pos = [0, 0, z];
+              {/* 벽 중앙에 버튼 추가: 반드시 wallButtonData[wall.type] 배열 map만 사용! */}
+              {Array.isArray(wallButtonData[wall.type]) && wallButtonData[wall.type].map((btn, idx) => {
+                let pos = [0, 0, 0.02];
                 return (
                   <Button
                     key={btn.key}
@@ -653,6 +651,9 @@ const Room = ({
                     setSelectedButton={setSelectedButton}
                     animateCamera={animateCamera}
                     forceVisible={true}
+                    polygonOffset={true}
+                    polygonOffsetFactor={-2}
+                    polygonOffsetUnits={-2}
                   />
                 );
               })}
@@ -683,8 +684,7 @@ const Room = ({
             </mesh>
             {/* 천장 버튼 */}
             {wallButtonData.ceiling?.map((btn, idx) => {
-              let z = 0.5 + idx * 0.05;
-              let pos = [0, 0, z];
+              let pos = [0, 0, 0.02];
               return (
                 <Button
                   key={btn.key}
@@ -700,6 +700,9 @@ const Room = ({
                   setSelectedButton={setSelectedButton}
                   animateCamera={animateCamera}
                   forceVisible={true}
+                  polygonOffset={true}
+                  polygonOffsetFactor={-2}
+                  polygonOffsetUnits={-2}
                 />
               );
             })}
@@ -729,8 +732,7 @@ const Room = ({
             </mesh>
             {/* 바닥 버튼 */}
             {wallButtonData.floor?.map((btn, idx) => {
-              let z = 0.5 + idx * 0.05;
-              let pos = [0, 0.01, z];
+              let pos = [0, 0, 0.02];
               return (
                 <Button
                   key={btn.key}
@@ -746,6 +748,9 @@ const Room = ({
                   setSelectedButton={setSelectedButton}
                   animateCamera={animateCamera}
                   forceVisible={true}
+                  polygonOffset={true}
+                  polygonOffsetFactor={-2}
+                  polygonOffsetUnits={-2}
                 />
               );
             })}
@@ -885,17 +890,17 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
           dpr={devicePixelRatio}
           shadows="soft"
           gl={{
-            antialias: !isMobile, // 모바일에서는 antialias 비활성화로 성능 향상
+            antialias: !isMobile,
             powerPreference: 'high-performance',
             clearColor: [0.1, 0.1, 0.1, 1],
-            alpha: false, // 알파 채널 비활성화로 성능 향상
-            stencil: false, // 스텐실 버퍼 비활성화로 성능 향상
+            alpha: false,
+            stencil: false,
             depth: true,
-            logarithmicDepthBuffer: false // 로그 깊이 버퍼 비활성화로 성능 향상
+            logarithmicDepthBuffer: false
           }}
-          camera={{ 
+          camera={{
             position: INITIAL_CAMERA_POSITION,
-            fov: INITIAL_CAMERA_FOV,
+            fov: 75,
             near: 0.1,
             far: 1000
           }}
@@ -903,8 +908,6 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
             camera.lookAt(INITIAL_CAMERA_LOOKAT);
             camera.layers.enable(1);
             gl.setClearColor(0x1a1a1a, 1);
-            
-            // 모바일에서 추가 성능 최적화
             if (isMobile) {
               gl.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
             }
@@ -915,14 +918,15 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
             enableZoom={!isAnimating}
             enablePan={!isAnimating}
             enableRotate={!isAnimating}
-            minDistance={minDistance}
-            maxDistance={maxDistance}
+            minDistance={10}
+            maxDistance={roomWidth / 2 - 5}
+            minPolarAngle={Math.PI / 6}
+            maxPolarAngle={Math.PI - Math.PI / 6}
             target={INITIAL_CAMERA_LOOKAT}
-            // 모바일에서 터치 컨트롤 최적화
-            enableDamping={!isMobile} // 모바일에서는 댐핑 비활성화로 성능 향상
+            enableDamping={!isMobile}
             dampingFactor={0.05}
-            rotateSpeed={isMobile ? -0.2 : -0.3} // 모바일에서는 회전 속도 조정
-            zoomSpeed={isMobile ? 0.8 : 1.0} // 모바일에서는 줌 속도 조정
+            rotateSpeed={isMobile ? -0.2 : -0.3}
+            zoomSpeed={isMobile ? 0.8 : 1.0}
           />
           <Suspense fallback={null}>
             <Room

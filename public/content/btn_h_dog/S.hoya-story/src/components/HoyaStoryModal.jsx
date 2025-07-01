@@ -82,7 +82,6 @@ export default function HoyaStoryModal({ onClose }) {
     <div style={styles.overlay}>
       <div style={styles.header}>
         <span style={styles.title}>호야와의 시간</span>
-        <button style={styles.closeBtn} onClick={onClose}>×</button>
       </div>
 
       <div style={styles.progressBarWrapper}>
@@ -121,7 +120,7 @@ const styles = {
     position: 'fixed',
     top: 0, left: 0,
     width: '100vw', height: '100vh',
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0)',
     zIndex: 9999,
   },
   header: {
@@ -137,13 +136,6 @@ const styles = {
   title: {
     fontSize: '1rem',
     fontWeight: 'bold',
-  },
-  closeBtn: {
-    fontSize: '1.5rem',
-    background: 'none',
-    border: 'none',
-    color: '#fff',
-    cursor: 'pointer',
   },
   progressBarWrapper: {
     position: 'absolute',

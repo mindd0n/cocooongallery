@@ -147,13 +147,13 @@ const styles = {
   },
   progressBarWrapper: {
     position: 'absolute',
-    top: 60,
-    left: 20,
-    right: 20,
+    left: 0,
+    right: 0,
+    bottom: 0,
     height: 4,
     display: 'flex',
     gap: 4,
-    zIndex: 10,
+    zIndex: 20,
   },
   progressSegment: {
     flex: 1,

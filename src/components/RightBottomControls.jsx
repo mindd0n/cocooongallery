@@ -27,7 +27,7 @@ const RightBottomControls = () => {
         // BGM 오디오 파일 로드
         audioRef.current = new Audio(`${S3_BASE_URL}/bgm.mp3`);
         audioRef.current.loop = true;
-        audioRef.current.volume = 0.5;
+        audioRef.current.volume = 0.5; // 항상 50% 볼륨으로 고정
 
         if (isMusicOn) {
             audioRef.current.play().catch(e => console.error("Audio play failed:", e));
@@ -54,7 +54,7 @@ const RightBottomControls = () => {
 
     const toggleMap = (e) => {
         if (e && isPixelTransparent(e.clientX, e.clientY, 'map_button', e.target)) return;
-        setShowMap(!showMap);
+        setShowMap(prev => !prev);
     };
 
     const handleExit = () => {
@@ -75,8 +75,13 @@ const RightBottomControls = () => {
             const pixelX = Math.floor((x - rect.left) * (img.width / rect.width));
             const pixelY = Math.floor((y - rect.top) * (img.height / rect.height));
             
-            const pixelData = ctx.getImageData(pixelX, pixelY, 1, 1).data;
-            return pixelData[3] < 128; // 알파값이 128 미만이면 투명
+            try {
+                const pixelData = ctx.getImageData(pixelX, pixelY, 1, 1).data;
+                return pixelData[3] < 128; // 알파값이 128 미만이면 투명
+            } catch (e) {
+                console.warn('cross-origin 이미지로 인해 픽셀 분석 불가:', img.src);
+                return false; // 항상 불투명(클릭 가능) 처리
+            }
         };
         
         img.src = target.src;
@@ -91,7 +96,7 @@ const RightBottomControls = () => {
                         className="out-button-img"
                         src={`${S3_BASE_URL}/icon_out.png`}
                         alt="Exit"
-                        onClick={handleExit}
+                        onDoubleClick={handleExit}
                         onMouseEnter={(e) => e.currentTarget.src = `${S3_BASE_URL}/icon_out_hover.png`}
                         onMouseLeave={(e) => e.currentTarget.src = `${S3_BASE_URL}/icon_out.png`}
                     />
@@ -103,11 +108,11 @@ const RightBottomControls = () => {
                         className="map-button-img"
                         src={`${S3_BASE_URL}/icon_map.png`}
                         alt="Map"
-                        onClick={toggleMap}
+                        onDoubleClick={toggleMap}
                     />
                 </button>
 
-                <button className="base-button music-button" onClick={toggleMusic}>
+                <button className="base-button music-button" onDoubleClick={toggleMusic}>
                     <img
                         className="music-button-img"
                         src={isMusicOn ? `${S3_BASE_URL}/music-on.png` : `${S3_BASE_URL}/music-off.png`}
@@ -117,12 +122,11 @@ const RightBottomControls = () => {
             </div>
 
             {showMap && (
-                <div className="map-popup-overlay" onClick={() => setShowMap(false)}>
+                <div className="map-popup-overlay" onClick={toggleMap}>
                     <img
                         className="map-popup-image"
                         src={`${S3_BASE_URL}/icon_map_inner.png`}
                         alt="Map Inner"
-                        onClick={(e) => e.stopPropagation()}
                     />
                 </div>
             )}
@@ -146,12 +150,17 @@ const RightBottomControls = () => {
                     <div
                         style={{
                             position: 'relative',
-                            width: '100vw',
-                            height: '100vh',
-                            background: 'transparent',
-                            boxShadow: 'none',
-                            borderRadius: 0,
+                            width: '80vw',
+                            height: 'auto',
+                            maxWidth: '1920px',
+                            maxHeight: '80vh',
+                            aspectRatio: '16 / 9',
+                            background: `url('/exit-page/image/bg.png') center/cover no-repeat`,
+                            borderRadius: '16px',
                             overflow: 'hidden',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                         }}
                         onClick={e => e.stopPropagation()}
                     >
@@ -159,15 +168,15 @@ const RightBottomControls = () => {
                             onClick={() => setShowRestPopup(false)}
                             style={{
                                 position: 'absolute',
-                                top: 20,
-                                right: 28,
+                                top: 16,
+                                right: 16,
                                 zIndex: 10,
                                 background: 'rgba(255,255,255,0.8)',
                                 border: 'none',
                                 borderRadius: '50%',
-                                width: 44,
-                                height: 44,
-                                fontSize: 28,
+                                width: 36,
+                                height: 36,
+                                fontSize: 22,
                                 fontWeight: 'bold',
                                 cursor: 'pointer',
                                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
@@ -180,12 +189,13 @@ const RightBottomControls = () => {
                             src="/exit-page/index.html"
                             title="쉼 카드 팝업"
                             style={{
-                                width: '100vw',
-                                height: '100vh',
+                                width: '100%',
+                                height: '100%',
                                 border: 'none',
-                                borderRadius: 0,
-                                background: 'white',
+                                background: 'transparent',
                                 display: 'block',
+                                position: 'relative',
+                                zIndex: 1,
                             }}
                             allowFullScreen
                         />

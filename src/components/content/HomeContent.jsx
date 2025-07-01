@@ -1,7 +1,118 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { GenericContent } from '../ContentDisplay.jsx';
 import './HomeContent.css';
 
 const S3_BASE_URL = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media';
+
+// 커스텀 비디오 플레이어 컴포넌트 분리
+function CustomVideoPlayer({ src }) {
+  const [playing, setPlaying] = React.useState(false);
+  const [current, setCurrent] = React.useState(0);
+  const [duration, setDuration] = React.useState(0);
+  const [videoSize, setVideoSize] = React.useState({ width: 16, height: 9 });
+  const videoRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const update = () => setCurrent(video.currentTime);
+    const onLoaded = () => setVideoSize({ width: video.videoWidth, height: video.videoHeight });
+    video.addEventListener('timeupdate', update);
+    video.addEventListener('loadedmetadata', onLoaded);
+    video.addEventListener('loadeddata', onLoaded);
+    return () => {
+      video.removeEventListener('timeupdate', update);
+      video.removeEventListener('loadedmetadata', onLoaded);
+      video.removeEventListener('loadeddata', onLoaded);
+    };
+  }, [src]);
+
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play();
+      setPlaying(true);
+    } else {
+      video.pause();
+      setPlaying(false);
+    }
+  };
+
+  const handleSeek = (e) => {
+    const video = videoRef.current;
+    if (!video) return;
+    const rect = e.target.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    video.currentTime = percent * duration;
+  };
+
+  const formatTime = (t) => {
+    if (!t) return '0:00';
+    const m = Math.floor(t / 60);
+    const s = Math.floor(t % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
+  // 동적으로 컨테이너 크기 계산 (최대 90vw, 80vh)
+  const maxW = window.innerWidth * 0.9;
+  const maxH = window.innerHeight * 0.8;
+  const aspect = videoSize.width / videoSize.height;
+  let width = maxW, height = maxW / aspect;
+  if (height > maxH) {
+    height = maxH;
+    width = maxH * aspect;
+  }
+
+  return (
+    <div style={{
+      position: 'relative',
+      width,
+      height,
+      margin: 'auto',
+      background: 'black',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}>
+      <video
+        ref={videoRef}
+        src={src}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          display: 'block',
+        }}
+        controlsList="nodownload"
+        onContextMenu={e => e.preventDefault()}
+        onDragStart={e => e.preventDefault()}
+        onClick={togglePlay}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        playsInline
+        loop
+      />
+      {/* 커스텀 재생바 */}
+      <div style={{
+        position: 'absolute',
+        left: 0, right: 0, bottom: 0,
+        height: 40,
+        background: 'rgba(0,0,0,0.5)',
+        zIndex: 20,
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 12px'
+      }}>
+        <button onClick={togglePlay} style={{ background: 'none', border: 'none', color: 'white', fontSize: 20, marginRight: 8, cursor: 'pointer' }}>{playing ? '❚❚' : '▶️'}</button>
+        <div onClick={handleSeek} style={{ flex: 1, height: 6, background: '#444', borderRadius: 3, marginRight: 8, cursor: 'pointer', position: 'relative' }}>
+          <div style={{ width: duration ? `${(current/duration)*100}%` : '0%', height: '100%', background: '#fff', borderRadius: 3, position: 'absolute', left: 0, top: 0 }} />
+        </div>
+        <span style={{ color: 'white', fontSize: 14 }}>{formatTime(current)} / {formatTime(duration)}</span>
+      </div>
+    </div>
+  );
+}
 
 const HomeContent = () => {
   const [selectedContent, setSelectedContent] = useState(null);
@@ -32,7 +143,12 @@ const HomeContent = () => {
         canvas.height = img.height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0);
-        imageDataRef.current[id] = ctx.getImageData(0, 0, img.width, img.height).data;
+        try {
+          imageDataRef.current[id] = ctx.getImageData(0, 0, img.width, img.height).data;
+        } catch (e) {
+          imageDataRef.current[id] = null;
+          console.warn('cross-origin 이미지로 인해 픽셀 분석 불가:', img.src);
+        }
       };
     });
   }, [iconRefs]);
@@ -71,7 +187,7 @@ const HomeContent = () => {
     return !alphaValue || alphaValue < 10;
   };
 
-  const handleWrapperClick = (e) => {
+  const handleWrapperDoubleClick = (e) => {
     const sortedIcons = Object.keys(iconRefs).sort((a, b) => zIndexOrder[b] - zIndexOrder[a]);
 
     for (const iconId of sortedIcons) {
@@ -96,17 +212,19 @@ const HomeContent = () => {
 
   const renderDetailContent = () => {
     if (!selectedContent) return null;
-
     switch (selectedContent) {
-      case 'icon_o': return <video key="video_o" src={`${S3_BASE_URL}/O.mp4`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} controls autoPlay loop playsInline />;
-      case 'icon_p': return <iframe key="iframe_p" src="/content/btn_h_home/P.수면신문/dist/index.html" style={{ width: '100%', height: '100%', border: 'none', minHeight: '600px' }} title="수면신문" />;
-      case 'icon_q': return <video key="video_q" src={`${S3_BASE_URL}/Q.mp4`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} controls autoPlay loop playsInline />;
+      case 'icon_o':
+        return <GenericContent type="video" src={`${S3_BASE_URL}/O.mp4`} />;
+      case 'icon_p':
+        return <iframe key="iframe_p" src="/content/btn_h_home/P.수면신문/dist/index.html" style={{ width: '100%', height: '100%', border: 'none', minHeight: '600px' }} title="수면신문" />;
+      case 'icon_q':
+        return <GenericContent type="video" src={`${S3_BASE_URL}/Q.mp4`} />;
       default: return null;
     }
   };
 
   return (
-    <div className="home-container" onClick={handleWrapperClick}>
+    <div className="home-container" onDoubleClick={handleWrapperDoubleClick}>
       {/* 배경 이미지 */}
       <img 
         src="/content/btn_h_home/btn_h_home_bg.png" 
