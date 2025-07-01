@@ -90,7 +90,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const textView = document.getElementById("textView");
   const formBtn = document.getElementById("openFormBtn");
 
-  const message = `숨가쁘게 달리다 멈추어 문득 ‘쉬고 있다’고 느낀 순간이 있었나요?
+  const message = `숨가쁘게 달리다 멈추어 문득 '쉬고 있다'고 느낀 순간이 있었나요?
 
 누군가에겐 할 일을 미뤄도 불안하지 않은 저녁이었을지도,
 말없이 함께 앉아 있던 친구와의 시간이었을지도,
@@ -107,26 +107,28 @@ window.addEventListener("DOMContentLoaded", () => {
   let typingTimeout;
   let readyToMove = false;
 
-  popup.classList.add("hidden");
+  // 카펫(봉투) 이미지는 아예 숨김
+  if (carpet) carpet.style.display = "none";
+
+  // 1. 처음엔 닫힌 봉투만 보이게
+  popup.classList.remove("hidden");
+  closed.classList.remove("hidden");
+  open.classList.add("hidden");
   typingBox.classList.add("hidden");
-  finalLayout.classList.add("hidden");
-  initTextPopupTriggers();
 
-  carpet.addEventListener("click", () => {
-    popup.classList.remove("hidden");
-    closed.classList.remove("hidden");
-    open.classList.add("hidden");
+  // 2. 0.8초 후 열린 봉투만 보이게
+  setTimeout(() => {
+    closed.classList.add("hidden");
+    open.classList.remove("hidden");
+    // 텍스트 박스는 아직 숨김
+    typingBox.classList.add("hidden");
 
+    // 3. 0.8초 후 텍스트 박스 등장 + 타이핑
     setTimeout(() => {
-      closed.classList.add("hidden");
-      open.classList.remove("hidden");
-
-      setTimeout(() => {
-        typingBox.classList.remove("hidden");
-        typeWriter();
-      }, 500);
+      typingBox.classList.remove("hidden");
+      typeWriter();
     }, 800);
-  });
+  }, 800);
 
   function typeWriter() {
     const speed = 30;
@@ -153,24 +155,22 @@ window.addEventListener("DOMContentLoaded", () => {
 
       setTimeout(() => {
         popup.classList.add("hidden");
-        finalLayout.classList.remove("hidden");
-
-        typingBoxFinal.classList.remove("hidden");
-        typingBoxFinal.classList.add("move-left");
-
-        const finalText = document.getElementById("final-text");
-        finalText.classList.remove("hidden");
-
-        formBtn.classList.remove("hidden");
-
-        galleryView.classList.remove("hidden");
-        textView.classList.add("hidden");
-        galleryIcon.src = "btn_photo-click.png";
-        textIcon.src = "btn_text.png";
-
+        document.getElementById("finalPopupOverlay").classList.remove("hidden");
+        document.getElementById("typingBoxFinal").classList.remove("hidden");
+        document.getElementById("typingBoxFinal").classList.add("move-left");
+        document.getElementById("final-text").classList.remove("hidden");
+        document.getElementById("openFormBtn").classList.remove("hidden");
+        document.getElementById("galleryView").classList.remove("hidden");
+        document.getElementById("textView").classList.add("hidden");
+        document.getElementById("galleryIcon").src = "btn_photo-click.png";
+        document.getElementById("textIcon").src = "btn_text.png";
         readyToMove = false;
       }, 800);
     }
+  });
+
+  document.getElementById("finalPopupClose").addEventListener("click", () => {
+    document.getElementById("finalPopupOverlay").classList.add("hidden");
   });
 
   galleryIcon.addEventListener("click", () => {

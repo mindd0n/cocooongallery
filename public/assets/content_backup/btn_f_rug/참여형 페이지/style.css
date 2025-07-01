@@ -24,7 +24,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(20, 20, 20, 0.5);
+  background: rgba(0,0,0,0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,7 +55,6 @@ body {
   z-index: 30;
   transition: all 1s ease;
   background-color: #fefae0;
-  background-image: url('paper.PNG');
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -70,7 +69,6 @@ body {
   width: 40vw;
   height: 100vh;
   background-color: #fefae0;
-  background-image: url('paper.PNG');
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -331,7 +329,6 @@ body {
   width: 40vw;
   height: 100vh;
   background-color: #fefae0;
-  background-image: url('paper.PNG');
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;

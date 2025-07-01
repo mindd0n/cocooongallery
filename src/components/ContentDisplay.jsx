@@ -40,14 +40,52 @@ const ContentMap = {
 
 const TreeContent = () => {
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', gap: '0px' }}>
-      <div style={{ flex: 2, minHeight: 0 }}>
-        <GenericContent 
-          type='video' 
-          src={`${S3_BASE_URL}/C.mp4`}
-        />
+    <div style={{ 
+      width: '100%', 
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center',
+      overflowY: 'auto',
+      background: 'transparent',
+      maxHeight: '100%',
+      justifyContent: 'flex-start',
+    }}>
+      <div style={{ 
+        flex: '0 0 auto', 
+        minHeight: 0, 
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: '32px',
+        marginBottom: '32px',
+      }}>
+        <div style={{
+          width: 'min(700px, 90vw)',
+          aspectRatio: '16/9',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'black',
+          borderRadius: '8px',
+          overflow: 'hidden',
+        }}>
+          <GenericContent 
+            type='video' 
+            src={`${S3_BASE_URL}/C.mp4`}
+          />
+        </div>
       </div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'row', gap: '1px', minHeight: 0 }}>
+      <div style={{ 
+        flex: '0 0 auto', 
+        display: 'flex', 
+        flexDirection: 'row', 
+        gap: '1px', 
+        minHeight: 0, 
+        marginBottom: 24,
+        width: 'min(700px, 90vw)',
+      }}>
         <div style={{ flex: 2, minHeight: 0 }}>
           <GenericContent 
             type='image'
@@ -355,35 +393,11 @@ const ContentDisplay = ({ buttonId, onClose }) => {
           backgroundSize: buttonId === 'btn_p_note' ? 'cover' : undefined,
           backgroundPosition: buttonId === 'btn_p_note' ? 'center' : undefined,
           borderRadius: buttonId === 'btn_p_note' ? '8px' : (buttonId === 'btn_h_dog' || buttonId === 'btn_h_star' ? '8px' : '0'),
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
-        {buttonId !== 'btn_p_note' && buttonId !== 'btn_h_star' && buttonId !== 'btn_h_dog' && (
-          <img 
-            src="/content/popup/popup_bg.png" 
-            alt="Popup UI" 
-            style={{ 
-              display: 'block',
-              width: 'auto',
-              maxWidth: '98vw',
-              maxHeight: '98vh',
-              filter: 'brightness(1.3)' 
-            }}
-          />
-        )}
-        {buttonId !== 'btn_p_note' && buttonId !== 'btn_h_star' && buttonId !== 'btn_h_dog' && (
-          <div 
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              background: 'rgba(255,255,255,0.10)',
-              zIndex: 1,
-              pointerEvents: 'none',
-            }}
-          />
-        )}
         <div 
           style={{
             position: 'absolute',
@@ -486,21 +500,33 @@ const ContentDisplay = ({ buttonId, onClose }) => {
             }
           })()}
         </div>
-        <img 
-          src="/content/popup/btn_back.png" 
-          alt="Back button"
-          className="back-button"
-          style={{
-            position:'absolute', 
-            right: window.innerWidth <= 768 ? '3%' : window.innerWidth <= 1024 ? '2%' : '1%',
-            bottom: window.innerWidth <= 768 ? '4%' : window.innerWidth <= 1024 ? '6%' : '8%',
-            width: window.innerWidth <= 768 ? '60px' : window.innerWidth <= 1024 ? '80px' : '100px',
-            height:'auto', 
-            cursor:'pointer',
-            zIndex: 2,
-          }}
-          onClick={handleClose}
-        />
+        {buttonId !== 'btn_p_note' && buttonId !== 'btn_h_star' && buttonId !== 'btn_h_dog' && (
+          <img 
+            src="/content/popup/popup_bg.png" 
+            alt="Popup UI" 
+            style={{ 
+              display: 'block',
+              width: 'auto',
+              maxWidth: '98vw',
+              maxHeight: '98vh',
+              filter: 'brightness(1.3)' 
+            }}
+          />
+        )}
+        {buttonId !== 'btn_p_note' && buttonId !== 'btn_h_star' && buttonId !== 'btn_h_dog' && (
+          <div 
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: 'rgba(255,255,255,0.10)',
+              zIndex: 1,
+              pointerEvents: 'none',
+            }}
+          />
+        )}
       </div>
       )}
     </div>
