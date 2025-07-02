@@ -53,14 +53,16 @@ body {
 
 .popup-box {
   position: relative;
-  width: 50vw;
-  height: 80vh;
+  width: 60vw;
+  max-width: 900px;
+  height: auto;
+  max-height: 90vh;
   background-color: white;
-  padding: 1rem;
+  padding: 1rem 1rem 1rem 1rem;
   border: 2px solid black;
   border-radius: 0;
   animation: flipIn 0.6s ease forwards;
-  overflow: hidden;
+  overflow-y: visible;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -83,30 +85,29 @@ body {
   font-weight: bold;
 }
 
-.popup-image {
-  margin-top: 1.2rem;
-  margin-bottom: -1rem;   /* -1rem → 자연스럽게 0.4rem */
-  max-width: 130px;        /* 기존 180px → 줄여서 균형 맞춤 */
-  height: auto;
-}
-
 .popup-desc {
   font-size: 0.9rem;
-  color: #000;            /* ✅ 회색(#666) → 블랙(#000) */     /* ✅ 굵은 글씨 */
+  color: #000;
   margin-top: 0.8rem;
   margin-bottom: 0.5rem;
   text-align: center;
   line-height: 1.4;
 }
 
+.popup-image {
+  margin-top: 1.2rem;
+  margin-bottom: -1rem;
+  max-width: 130px;
+  height: auto;
+}
+
 .footer-text {
-  margin-top: -0.5rem;     /* 👈 기존 1.2rem → 0.6rem 정도로 줄이기 */
+  margin-top: -0.5rem;
   margin-bottom: 1rem;
   font-size: 0.8rem;
   color: #666;
   text-align: center;
 }
-
 
 .slider {
   margin-top: 3rem;
@@ -143,6 +144,7 @@ body {
 
 .slide p {
   margin-top: 0.8rem;
+  margin-bottom: 1.5rem;
   font-size: 0.9rem;
   color: #444;
 }
