@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import PavilionContent from './content/PavilionContent.jsx';
-import HomeContent from './content/HomeContent.jsx';
 
 // 투명 영역 클릭 방지: 클릭 위치 알파값 체크 함수 (항상 최상단)
 function isImagePixelOpaque(img, x, y) {
@@ -13,15 +12,7 @@ function isImagePixelOpaque(img, x, y) {
   return pixel[3] >= 10; // 알파값 10 이상만 클릭 허용
 }
 
-function handleIconClick(e, iconId) {
-  e.stopPropagation();
-  const img = e.target;
-  const rect = img.getBoundingClientRect();
-  const x = Math.round((e.clientX - rect.left) * (img.naturalWidth / rect.width));
-  const y = Math.round((e.clientY - rect.top) * (img.naturalHeight / rect.height));
-  if (!isImagePixelOpaque(img, x, y)) return;
-  alert(`${iconId} 버튼 클릭!`);
-}
+
 
 // S3 기본 URL
 const S3_BASE_URL = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media';
@@ -293,47 +284,6 @@ const GenericContent = ({ type, src, onClose, objectFit = 'contain', buttonId })
 
   // 커스텀 비디오 컨트롤 상태
   const videoRef = useRef(null);
-  const [playing, setPlaying] = useState(false);
-  const [current, setCurrent] = useState(0);
-  const [duration, setDuration] = useState(0);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    const update = () => setCurrent(video.currentTime);
-    video.addEventListener('timeupdate', update);
-    video.addEventListener('loadedmetadata', () => setDuration(video.duration));
-    return () => {
-      video.removeEventListener('timeupdate', update);
-    };
-  }, []);
-
-  const togglePlay = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.paused) {
-      video.play();
-      setPlaying(true);
-    } else {
-      video.pause();
-      setPlaying(false);
-    }
-  };
-
-  const handleSeek = (e) => {
-    const video = videoRef.current;
-    if (!video) return;
-    const rect = e.target.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    video.currentTime = percent * duration;
-  };
-
-  const formatTime = (t) => {
-    if (!t) return '0:00';
-    const m = Math.floor(t / 60);
-    const s = Math.floor(t % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-  };
 
   switch (type) {
     case 'video':
@@ -370,30 +320,6 @@ const GenericContent = ({ type, src, onClose, objectFit = 'contain', buttonId })
   }
 };
 
-// icon_a, icon_b 픽셀 데이터 저장용 ref
-const goImageDataRef = { current: { icon_a: null, icon_b: null } };
-
-// icon_a, icon_b 클릭 polygon (1000x1000 기준, 임의 근사)
-const iconARegion = [
-  [180,180],[400,120],[600,180],[750,350],[750,600],[600,800],[400,880],[180,800],[120,600],[120,350]
-];
-const iconBRegion = [
-  [600,200],[800,120],[950,400],[900,800],[700,900],[600,700],[550,500],[600,300]
-];
-
-// 점이 polygon 내부에 있는지 판정 (ray-casting 알고리즘)
-function isPointInPolygon(x, y, polygon) {
-  let inside = false;
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const xi = polygon[i][0], yi = polygon[i][1];
-    const xj = polygon[j][0], yj = polygon[j][1];
-    const intersect = ((yi > y) !== (yj > y)) &&
-      (x < (xj - xi) * (y - yi) / (yj - yi + 0.00001) + xi);
-    if (intersect) inside = !inside;
-  }
-  return inside;
-}
-
 const ContentDisplay = ({ buttonId, onClose }) => {
   const [show, setShow] = useState(false);
   const [showGoVideo, setShowGoVideo] = useState(false);
@@ -403,7 +329,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
   // go 팝업 아이콘 ref는 항상 선언
   const iconARef = useRef(null);
   const iconBRef = useRef(null);
-  const goImageDataRef = useRef({});
+
   // 이미지 onLoad 시 픽셀 데이터 추출 함수도 항상 선언
   const handleGoIconLoad = (iconId, ref) => {
     const img = ref.current;
@@ -418,14 +344,11 @@ const ContentDisplay = ({ buttonId, onClose }) => {
         // btn_h_home 아이콘들
         homeImageDataRef.current[iconId] = ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data;
       } else {
-        // btn_p_go 아이콘들
-        goImageDataRef.current[iconId] = ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data;
+        // btn_p_go 아이콘들 - 사용하지 않으므로 제거
       }
     } catch (e) {
       if (iconId.startsWith('icon_')) {
         homeImageDataRef.current[iconId] = null;
-      } else {
-        goImageDataRef.current[iconId] = null;
       }
     }
   };
@@ -475,11 +398,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
     }
   }, [buttonId, contentInfo]);
 
-  const handleClose = (e) => {
-    e.stopPropagation();
-    setShow(false);
-    onClose();
-  };
+
   
   const handleWrapperClick = (e) => {
     // 정자 팝업일 때는 바깥 클릭 시 바로 닫기 (popup_bg 중첩 방지)
@@ -621,7 +540,6 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               const iconB = iconBRef.current;
               
               if (iconA) {
-                const imgARect = iconA.getBoundingClientRect();
                 const imgAX = Math.round((x) * (iconA.naturalWidth / rect.width));
                 const imgAY = Math.round((y) * (iconA.naturalHeight / rect.height));
                 
@@ -633,7 +551,6 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               }
               
               if (iconB) {
-                const imgBRect = iconB.getBoundingClientRect();
                 const imgBX = Math.round((x) * (iconB.naturalWidth / rect.width));
                 const imgBY = Math.round((y) * (iconB.naturalHeight / rect.height));
                 
@@ -1322,131 +1239,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
   );
 };
 
-function CustomVideoPlayerDefaultLike({ src }) {
-  const videoRef = React.useRef(null);
-  const [playing, setPlaying] = React.useState(false);
-  const [current, setCurrent] = React.useState(0);
-  const [duration, setDuration] = React.useState(0);
-  const [volume, setVolume] = React.useState(1);
-  const [fullscreen, setFullscreen] = React.useState(false);
-  const [hover, setHover] = React.useState(false);
 
-  React.useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    const update = () => setCurrent(video.currentTime);
-    const onLoaded = () => setDuration(video.duration);
-    video.addEventListener('timeupdate', update);
-    video.addEventListener('loadedmetadata', onLoaded);
-    return () => {
-      video.removeEventListener('timeupdate', update);
-      video.removeEventListener('loadedmetadata', onLoaded);
-    };
-  }, [src]);
-
-  const togglePlay = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.paused) {
-      video.play();
-      setPlaying(true);
-    } else {
-      video.pause();
-      setPlaying(false);
-    }
-  };
-
-  const handleSeek = (e) => {
-    const video = videoRef.current;
-    if (!video) return;
-    const rect = e.target.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    video.currentTime = percent * duration;
-  };
-
-  const handleVolume = (e) => {
-    const video = videoRef.current;
-    if (!video) return;
-    const v = parseFloat(e.target.value);
-    video.volume = v;
-    setVolume(v);
-  };
-
-  const handleFullscreen = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (!fullscreen) {
-      if (video.requestFullscreen) video.requestFullscreen();
-      setFullscreen(true);
-    } else {
-      if (document.exitFullscreen) document.exitFullscreen();
-      setFullscreen(false);
-    }
-  };
-
-  const formatTime = (t) => {
-    if (!t) return '0:00';
-    const m = Math.floor(t / 60);
-    const s = Math.floor(t % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-  };
-
-  // 유튜브 스타일: hover 시만 재생바 보이게
-  return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      onMouseMove={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}>
-      <video
-        ref={videoRef}
-        src={src}
-        style={{ maxWidth: '100%', maxHeight: '100%', width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: 'none', borderRadius: 8 }}
-        loop
-        playsInline
-        onClick={togglePlay}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        controls={false}
-      />
-      {/* 유튜브 스타일 커스텀 재생바 */}
-      <div style={{
-        position: 'absolute',
-        left: 0, right: 0, bottom: 0,
-        height: 56,
-        background: hover ? 'linear-gradient(to top, rgba(33,33,33,0.95) 80%, rgba(33,33,33,0.0) 100%)' : 'transparent',
-        zIndex: 20,
-        display: hover ? 'flex' : 'none',
-        alignItems: 'center',
-        padding: '0 16px',
-        gap: 12,
-        boxSizing: 'border-box',
-        width: '100%',
-        userSelect: 'none',
-        transition: 'background 0.2s',
-      }}>
-        {/* Play/Pause */}
-        <button onClick={togglePlay} style={{ background: 'none', border: 'none', color: 'white', fontSize: 28, marginRight: 8, cursor: 'pointer', outline: 'none', display: 'flex', alignItems: 'center' }}>{playing ? (
-          <svg width="28" height="28" viewBox="0 0 28 28"><rect x="6" y="5" width="5" height="18" rx="2" fill="#fff"/><rect x="17" y="5" width="5" height="18" rx="2" fill="#fff"/></svg>
-        ) : (
-          <svg width="28" height="28" viewBox="0 0 28 28"><polygon points="7,5 23,14 7,23" fill="#fff"/></svg>
-        )}</button>
-        {/* Seekbar */}
-        <div onClick={handleSeek} style={{ flex: 1, height: 6, background: '#606060', borderRadius: 3, marginRight: 8, cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <div style={{ width: duration ? `${(current/duration)*100}%` : '0%', height: '100%', background: '#f00', borderRadius: 3, position: 'absolute', left: 0, top: 0 }} />
-          <div style={{ width: 12, height: 12, borderRadius: 6, background: '#fff', position: 'absolute', left: duration ? `calc(${(current/duration)*100}% - 6px)` : '-6px', top: '-3px', boxShadow: '0 0 4px #f00', border: '2px solid #f00', display: duration ? 'block' : 'none' }} />
-        </div>
-        {/* Time */}
-        <span style={{ color: '#fff', fontSize: 15, minWidth: 70, textAlign: 'right', fontFamily: 'Roboto, Arial, sans-serif', letterSpacing: '0.5px' }}>{formatTime(current)} / {formatTime(duration)}</span>
-        {/* Volume */}
-        <svg width="22" height="22" viewBox="0 0 24 24" style={{ marginLeft: 8, marginRight: 2 }}><path fill="#fff" d="M3 10v4h4l5 5V5l-5 5H3zm13.5 2c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.74 2.5-2.26 2.5-4.02z"/></svg>
-        <input type="range" min={0} max={1} step={0.01} value={volume} onChange={handleVolume} style={{ width: 70, accentColor: '#fff', background: 'transparent' }} />
-        {/* Fullscreen */}
-        <button onClick={handleFullscreen} style={{ background: 'none', border: 'none', color: 'white', fontSize: 22, marginLeft: 8, cursor: 'pointer', outline: 'none', display: 'flex', alignItems: 'center' }}>
-          <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#fff" d="M7 14H5v5h5v-2H7v-3zm0-4h2V7h3V5H7v5zm10 7h-3v2h5v-5h-2v3zm0-12h-5v2h3v3h2V5z"/></svg>
-        </button>
-      </div>
-    </div>
-  );
-}
 
 export { GenericContent };
 export default ContentDisplay;

@@ -36,12 +36,9 @@ const viewerHeight = 45;
 // const wallLightColor = "#fff0e6";
 
 const minDistance = 0.5;
-const maxDistance = Math.max(roomWidth, roomHeight, roomDepth) / 2; // 큐브 밖으로 나가지 않도록 최대 거리 설정
-
 // 초기 카메라 상태를 상수로 정의
 const INITIAL_CAMERA_POSITION = new THREE.Vector3(0, viewerHeight, roomDepth / 2 + 10);
 const INITIAL_CAMERA_LOOKAT = new THREE.Vector3(0, 0, 0);
-const INITIAL_CAMERA_FOV = 75;
 
 // 벽 텍스처 경로를 객체로 관리 (로컬 경로로 임시 변경)
 const wallTexturePaths = {
