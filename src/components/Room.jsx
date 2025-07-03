@@ -939,15 +939,17 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
               animateCamera={animateCamera}
             />
           </Suspense>
-          <EffectComposer>
-            <Outline
-              selection={hoveredObject && buttonRef.current ? [buttonRef.current.getObjectByName(hoveredObject)].filter(Boolean) : []}
-              edgeStrength={100}
-              visibleEdgeColor={0x00ff00}
-              hiddenEdgeColor={0x00ff00}
-              blur
-            />
-          </EffectComposer>
+          {hoveredObject && buttonRef.current && buttonRef.current.getObjectByName(hoveredObject) && (
+            <EffectComposer>
+              <Outline
+                selection={[buttonRef.current.getObjectByName(hoveredObject)]}
+                edgeStrength={100}
+                visibleEdgeColor={0x00ff00}
+                hiddenEdgeColor={0x00ff00}
+                blur
+              />
+            </EffectComposer>
+          )}
         </Canvas>
       </div>
 
