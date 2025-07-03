@@ -576,7 +576,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               height: '100%',
               pointerEvents: 'auto',
               cursor: 'pointer',
-              zIndex: 3
+              zIndex: selectedHomeContent === 'icon_p' ? 1 : 3
             }}
             onMouseMove={e => {
               const rect = e.currentTarget.getBoundingClientRect();
@@ -847,6 +847,54 @@ const ContentDisplay = ({ buttonId, onClose }) => {
       }
     };
     
+    // 팝업 반응형 크기 계산 함수
+    function getSleepNewspaperPopupStyle(selectedHomeContent) {
+      const isTablet = typeof window !== 'undefined' && window.innerWidth <= 1024;
+      if (selectedHomeContent === 'icon_p') {
+        if (isTablet) {
+          return {
+            width: 'min(98vw, 600px)',
+            height: 'min(70vh, 500px)',
+            aspectRatio: 'auto',
+            background: 'white',
+            borderRadius: '12px',
+            overflow: 'auto',
+            overflowY: 'auto',
+            maxHeight: '100vh',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          };
+        } else {
+          return {
+            width: 'min(1400px,98vw)',
+            height: 'min(800px,90vh)',
+            aspectRatio: 'auto',
+            background: 'white',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          };
+        }
+      } else {
+        return {
+          width: 'min(900px,90vw)',
+          aspectRatio: '16/9',
+          background: 'white',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        };
+      }
+    }
+
     return (
       <div
         style={{
@@ -887,7 +935,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               height: '100%',
               pointerEvents: 'auto',
               cursor: 'pointer',
-              zIndex: 3
+              zIndex: selectedHomeContent === 'icon_p' ? 1 : 3
             }}
             onMouseMove={e => {
               const rect = e.currentTarget.getBoundingClientRect();
@@ -1005,24 +1053,12 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               width: '100vw',
               height: '100vh',
               background: 'rgba(0,0,0,0.7)',
-              zIndex: 4000,
+              zIndex: 9999,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }} onClick={() => setSelectedHomeContent(null)}>
-              <div style={{
-                position: 'relative',
-                width: selectedHomeContent === 'icon_p' ? 'min(1400px,98vw)' : 'min(900px,90vw)',
-                height: selectedHomeContent === 'icon_p' ? 'min(800px,90vh)' : 'auto',
-                aspectRatio: selectedHomeContent === 'icon_p' ? 'auto' : '16/9',
-                background: 'white',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }} onClick={e => e.stopPropagation()}>
+              <div style={getSleepNewspaperPopupStyle(selectedHomeContent)} onClick={e => e.stopPropagation()}>
                 {renderDetailContent()}
                 {selectedHomeContent !== 'icon_p' && (
                   <button onClick={() => setSelectedHomeContent(null)} style={{ position: 'absolute', top: 8, right: 8, zIndex: 10, background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: 32, height: 32, fontSize: 18, cursor: 'pointer' }}>X</button>

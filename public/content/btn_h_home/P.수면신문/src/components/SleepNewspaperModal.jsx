@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import Magnifier from './Magnifier';
 import newspaperImage from '../assets/IMG_0853.PNG';
 
@@ -14,36 +14,60 @@ const SleepNewspaperModal = ({ onClose }) => {
     }
   };
 
+  // 반응형: 태블릿에서 이미지/렌즈 크기 축소
+  const isTablet = typeof window !== 'undefined' && window.innerWidth <= 1024;
+
+  // 모바일 가로모드 감지
+  const isMobileLandscape = typeof window !== 'undefined' && window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
+
+  // 모바일 세로모드 감지
+  const isMobilePortrait = typeof window !== 'undefined' && window.innerWidth <= 1024 && window.innerHeight >= window.innerWidth;
+
+  const containerRef = useRef(null);
+
+  // 태블릿에서 마운트 시 스크롤을 맨 아래로 이동
+  useEffect(() => {
+    if (isTablet && containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [isTablet]);
+
+  useEffect(() => {
+    if (isMobileLandscape && containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [isMobileLandscape]);
+
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0, left: 0,
-      width: '100vw',
-      height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 9999,
-    }}>
-      <div style={{ position: 'relative' }}>
+    <div
+      ref={containerRef}
+      style={{
+        position: 'fixed',
+        top: 0, left: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        zIndex: 9999,
+        overflowY: (isTablet && isMobileLandscape) ? 'auto' : 'hidden', // 데스크탑/세로모드에서 스크롤 완전 제거
+        maxHeight: '100vh',
+        padding: 0,
+        margin: 0,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+      <div style={{
+        position: 'relative',
+        height: '100vh',
+        width: '100vw',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
+        padding: 0,
+        margin: 0,
+      }}>
         <Magnifier src={newspaperImage} />
-        <button
-          onClick={handleClose}
-          style={{
-            position: 'absolute',
-            top: 10,
-            right: 10,
-            background: 'white',
-            border: '1px solid #ccc',
-            padding: '5px 10px',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            zIndex: 10000,
-          }}
-        >
-          닫기
-        </button>
       </div>
     </div>
   );
