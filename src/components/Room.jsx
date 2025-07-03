@@ -888,7 +888,7 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
           shadows="soft"
           gl={{
             antialias: !isMobile,
-            powerPreference: 'high-performance',
+            powerPreference: 'low-power',
             clearColor: [0.1, 0.1, 0.1, 1],
             alpha: false,
             stencil: false,
