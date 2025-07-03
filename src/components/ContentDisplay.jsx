@@ -403,6 +403,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
   // go 팝업 아이콘 ref는 항상 선언
   const iconARef = useRef(null);
   const iconBRef = useRef(null);
+  const goImageDataRef = useRef({});
   // 이미지 onLoad 시 픽셀 데이터 추출 함수도 항상 선언
   const handleGoIconLoad = (iconId, ref) => {
     const img = ref.current;
@@ -413,14 +414,57 @@ const ContentDisplay = ({ buttonId, onClose }) => {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0);
     try {
-      goImageDataRef.current[iconId] = ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data;
+      if (iconId.startsWith('icon_')) {
+        // btn_h_home 아이콘들
+        homeImageDataRef.current[iconId] = ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data;
+      } else {
+        // btn_p_go 아이콘들
+        goImageDataRef.current[iconId] = ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data;
+      }
     } catch (e) {
-      goImageDataRef.current[iconId] = null;
+      if (iconId.startsWith('icon_')) {
+        homeImageDataRef.current[iconId] = null;
+      } else {
+        goImageDataRef.current[iconId] = null;
+      }
     }
   };
 
   const [singingBowlAudio, setSingingBowlAudio] = useState(null);
   const [isSingingBowlPlaying, setIsSingingBowlPlaying] = useState(false);
+
+  // btn_h_home 관련
+  const [selectedHomeContent, setSelectedHomeContent] = useState(null);
+  const [homeZIndexOrder, setHomeZIndexOrder] = useState({ icon_o: 2, icon_p: 3, icon_q: 4 });
+  const homeImageDataRef = useRef({});
+  const homeIconRef_o = useRef(null);
+  const homeIconRef_p = useRef(null);
+  const homeIconRef_q = useRef(null);
+  const homeIconRefs = useMemo(() => ({
+    icon_o: homeIconRef_o,
+    icon_p: homeIconRef_p,
+    icon_q: homeIconRef_q,
+  }), []);
+  useEffect(() => {
+    Object.entries(homeIconRefs).forEach(([id, ref]) => {
+      const img = new window.Image();
+      img.crossOrigin = "Anonymous";
+      if (!ref.current) return;
+      img.src = ref.current.src;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        try {
+          homeImageDataRef.current[id] = ctx.getImageData(0, 0, img.width, img.height).data;
+        } catch (e) {
+          homeImageDataRef.current[id] = null;
+        }
+      };
+    });
+  }, [homeIconRefs]);
 
   useEffect(() => {
     console.log('ContentDisplay useEffect:', { buttonId, contentInfo });
@@ -762,6 +806,235 @@ const ContentDisplay = ({ buttonId, onClose }) => {
     );
   }
 
+  if (buttonId === 'btn_h_home') {
+    // btn_p_go와 동일한 방식으로 투명영역 판정
+    const isHomeIconPixelOpaque = (img, x, y) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const pixel = ctx.getImageData(x, y, 1, 1).data;
+      return pixel[3] >= 10; // 알파값 10 이상만 클릭 허용
+    };
+    
+    // 2차 팝업 렌더링
+    const renderDetailContent = () => {
+      if (!selectedHomeContent) return null;
+      switch (selectedHomeContent) {
+        case 'icon_o':
+          return <GenericContent type="video" src={`${S3_BASE_URL}/O.mp4`} />;
+        case 'icon_p':
+          return (
+            <iframe 
+              key="iframe_p" 
+              src="/content/btn_h_home/P.수면신문/dist/index.html" 
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                border: 'none', 
+                minHeight: '600px',
+                background: 'white'
+              }} 
+              title="수면신문"
+              onLoad={() => console.log('수면신문 iframe 로드 완료')}
+              onError={(e) => console.error('수면신문 iframe 로드 실패:', e)}
+            />
+          );
+        case 'icon_q':
+          return <GenericContent type="video" src={`${S3_BASE_URL}/Q.mp4`} />;
+        default: return null;
+      }
+    };
+    
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.7)',
+          zIndex: 3000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        onClick={onClose}
+      >
+        <div
+          style={{
+            position: 'relative',
+            width: '80vw',
+            aspectRatio: '16/9',
+            maxWidth: '1200px',
+            maxHeight: '80vh',
+            background: `url('/content/btn_h_home/btn_h_home_bg.png') center/contain no-repeat`,
+            borderRadius: '16px',
+            overflow: 'hidden',
+            display: 'block',
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          {/* 아이콘들 - btn_p_go와 동일한 통합 클릭 처리 */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'auto',
+              cursor: 'pointer',
+              zIndex: 3
+            }}
+            onMouseMove={e => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const y = e.clientY - rect.top;
+              
+              // icon_o, icon_p, icon_q 모두 확인 (z-index 순서대로)
+              const sortedIcons = Object.keys(homeIconRefs).sort((a, b) => homeZIndexOrder[b] - homeZIndexOrder[a]);
+              
+              for (const iconId of sortedIcons) {
+                const iconElement = homeIconRefs[iconId].current;
+                if (!iconElement) continue;
+                
+                const imgX = Math.round((x) * (iconElement.naturalWidth / rect.width));
+                const imgY = Math.round((y) * (iconElement.naturalHeight / rect.height));
+                
+                if (isHomeIconPixelOpaque(iconElement, imgX, imgY)) {
+                  setHoveredIcon(iconId);
+                  return; // 색이 있는 영역을 찾으면 호버 설정하고 종료
+                }
+              }
+              
+              setHoveredIcon(null);
+            }}
+            onMouseLeave={() => setHoveredIcon(null)}
+            onClick={e => {
+              e.stopPropagation();
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const y = e.clientY - rect.top;
+              
+              // icon_o, icon_p, icon_q 모두 확인 (z-index 순서대로)
+              const sortedIcons = Object.keys(homeIconRefs).sort((a, b) => homeZIndexOrder[b] - homeZIndexOrder[a]);
+              
+              for (const iconId of sortedIcons) {
+                const iconElement = homeIconRefs[iconId].current;
+                if (!iconElement) continue;
+                
+                const imgX = Math.round((x) * (iconElement.naturalWidth / rect.width));
+                const imgY = Math.round((y) * (iconElement.naturalHeight / rect.height));
+                
+                if (isHomeIconPixelOpaque(iconElement, imgX, imgY)) {
+                  console.log(`${iconId} 아이콘 클릭 성공!`);
+                  setSelectedHomeContent(iconId);
+                  const maxZIndex = Math.max(...Object.values(homeZIndexOrder));
+                  setHomeZIndexOrder(prev => ({ ...prev, [iconId]: maxZIndex + 1 }));
+                  return; // 첫 번째로 감지된 아이콘만 처리하고 종료
+                }
+              }
+              
+              console.log('클릭된 아이콘이 없음 - 모든 아이콘이 투명 영역');
+            }}
+          >
+            <img
+              src="/content/btn_h_home/icon_o.png"
+              alt="Icon O"
+              ref={homeIconRef_o}
+              style={{
+                position: 'absolute',
+                top: '5%',
+                left: '-5%',
+                width: '90%',
+                height: '90%',
+                objectFit: 'contain',
+                pointerEvents: 'none',
+                zIndex: homeZIndexOrder.icon_o,
+                transition: 'transform 0.2s ease-in-out',
+                transform: hoveredIcon === 'icon_o' ? 'scale(1.05)' : 'scale(1)'
+              }}
+                             onLoad={() => handleGoIconLoad('icon_o', homeIconRef_o)}
+            />
+            <img
+              src="/content/btn_h_home/icon_p.png"
+              alt="Icon P"
+              ref={homeIconRef_p}
+              style={{
+                position: 'absolute',
+                top: '5%',
+                left: '5%',
+                width: '90%',
+                height: '90%',
+                objectFit: 'contain',
+                pointerEvents: 'none',
+                zIndex: homeZIndexOrder.icon_p,
+                transition: 'transform 0.2s ease-in-out',
+                transform: hoveredIcon === 'icon_p' ? 'scale(1.05)' : 'scale(1)'
+              }}
+                             onLoad={() => handleGoIconLoad('icon_p', homeIconRef_p)}
+            />
+            <img
+              src="/content/btn_h_home/icon_q.png"
+              alt="Icon Q"
+              ref={homeIconRef_q}
+              style={{
+                position: 'absolute',
+                top: '5%',
+                left: '15%',
+                width: '90%',
+                height: '90%',
+                objectFit: 'contain',
+                pointerEvents: 'none',
+                zIndex: homeZIndexOrder.icon_q,
+                transition: 'transform 0.2s ease-in-out',
+                transform: hoveredIcon === 'icon_q' ? 'scale(1.05)' : 'scale(1)'
+              }}
+                             onLoad={() => handleGoIconLoad('icon_q', homeIconRef_q)}
+            />
+          </div>
+          {/* 2차 팝업창 */}
+          {selectedHomeContent && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(0,0,0,0.7)',
+              zIndex: 4000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }} onClick={() => setSelectedHomeContent(null)}>
+              <div style={{
+                position: 'relative',
+                width: selectedHomeContent === 'icon_p' ? 'min(1400px,98vw)' : 'min(900px,90vw)',
+                height: selectedHomeContent === 'icon_p' ? 'min(800px,90vh)' : 'auto',
+                aspectRatio: selectedHomeContent === 'icon_p' ? 'auto' : '16/9',
+                background: 'white',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }} onClick={e => e.stopPropagation()}>
+                {renderDetailContent()}
+                {selectedHomeContent !== 'icon_p' && (
+                  <button onClick={() => setSelectedHomeContent(null)} style={{ position: 'absolute', top: 8, right: 8, zIndex: 10, background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: 32, height: 32, fontSize: 18, cursor: 'pointer' }}>X</button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div 
       className="content-display"
@@ -854,7 +1127,8 @@ const ContentDisplay = ({ buttonId, onClose }) => {
             if (buttonId === 'btn_p_pavilion') {
               return <PavilionContent onClose={onClose} noImageStyle />;
             } else if (buttonId === 'btn_h_home') {
-              return <HomeContent />;
+              // 커스텀 팝업으로 처리하므로 여기서는 아무것도 반환하지 않음
+              return null;
             } else if (buttonId === 'btn_p_tree') {
               return <TreeContent />;
             } else if (buttonId === 'btn_h_star') {
