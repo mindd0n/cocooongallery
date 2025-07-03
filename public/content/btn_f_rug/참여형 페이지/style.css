@@ -575,3 +575,28 @@ body {
   display: block;
   margin: 0;
 }
+
+/* 팝업 이미지+설명 flex column 컨테이너 */
+.popup-img-desc-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.popup-img-desc-container img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.popup-img-desc {
+  width: 100%;
+  text-align: center;
+  margin-top: 0.5rem;
+  word-break: keep-all;
+  font-size: 1rem;
+  color: #222;
+}

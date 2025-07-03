@@ -48,22 +48,27 @@ function initTextPopupTriggers() {
         const imageList = item.dataset.images?.split(",") || [];
         let imagesHTML = "";
 
+        // 이미지와 설명글을 묶는 flex column 컨테이너 생성
         if (isValidImage(thumbImage)) {
-          imagesHTML += `<img src="${thumbImage}" style="max-height: 80vh; width: auto; margin-top: 3rem; display: block; margin-left: auto; margin-right: auto;" />`;
+          imagesHTML += `<div class="popup-img-desc-container" style="display: flex; flex-direction: column; align-items: center; width: 100%;">`;
+          imagesHTML += `<img src="${thumbImage}" style="max-width: 100%; height: auto; margin-top: 2rem; display: block;" />`;
+          imagesHTML += `<div class="popup-img-desc" style="width: 100%; text-align: center; margin-top: 0.5rem; word-break: keep-all;">${body}</div>`;
+          imagesHTML += `</div>`;
         }
 
         imageList.forEach(src => {
           const trimmed = src.trim();
           if (trimmed && trimmed !== thumbImage && isValidImage(trimmed)) {
-            imagesHTML += `<img src="${trimmed}" style="max-height: 80vh; width: auto; margin-top: 3rem; display: block; margin-left: auto; margin-right: auto;" />`;
+            imagesHTML += `<div class="popup-img-desc-container" style="display: flex; flex-direction: column; align-items: center; width: 100%;">`;
+            imagesHTML += `<img src="${trimmed}" style="max-width: 100%; height: auto; margin-top: 2rem; display: block;" />`;
+            imagesHTML += `</div>`;
           }
         });
 
         popupContent.innerHTML = `
-          <div style="max-width: 90%; max-height: 90vh; overflow-y: auto; margin: 0 auto; padding: 2rem; text-align: left; line-height: 1.6; font-size: 0.9rem; box-sizing: border-box; background-color: white; border: 1px solid #333;">
+          <div style="max-width: 90%; max-height: 90vh; overflow-y: auto; margin: 0 auto; padding: 2rem; text-align: left; line-height: 1.6; font-size: 0.9rem; box-sizing: border-box; background-color: white; border: 1px solid #333; display: flex; flex-direction: column; align-items: center;">
             <h3 style="margin-bottom: 1rem;">${title}</h3>
-            <p style="white-space: pre-line; text-align: left;">${body}</p>
-            ${imagesHTML}
+            ${imagesHTML || `<div class=\"popup-img-desc\" style=\"width: 100%; text-align: center; margin-top: 0.5rem; word-break: keep-all;\">${body}</div>`}
           </div>
         `;
       } else if (type === "image") {
@@ -73,21 +78,26 @@ function initTextPopupTriggers() {
         const imageList = item.dataset.images?.split(",") || [];
         let imagesHTML = "";
 
+        // 이미지와 설명글을 묶는 flex column 컨테이너 생성
         if (isValidImage(src)) {
-          imagesHTML += `<img src="${src}" style="max-height: 80vh; width: auto; margin-top: 3rem; display: block; margin-left: auto; margin-right: auto;" />`;
+          imagesHTML += `<div class="popup-img-desc-container" style="display: flex; flex-direction: column; align-items: center; width: 100%;">`;
+          imagesHTML += `<img src="${src}" style="max-width: 100%; height: auto; margin-top: 2rem; display: block;" />`;
+          imagesHTML += `<div class="popup-img-desc" style="width: 100%; text-align: center; margin-top: 0.5rem; word-break: keep-all;">${body}</div>`;
+          imagesHTML += `</div>`;
         }
 
         imageList.forEach(imgSrc => {
           const trimmed = imgSrc.trim();
           if (trimmed && trimmed !== src && isValidImage(trimmed)) {
-            imagesHTML += `<img src="${trimmed}" style="max-height: 80vh; width: auto; margin-top: 3rem; display: block; margin-left: auto; margin-right: auto;" />`;
+            imagesHTML += `<div class="popup-img-desc-container" style="display: flex; flex-direction: column; align-items: center; width: 100%;">`;
+            imagesHTML += `<img src="${trimmed}" style="max-width: 100%; height: auto; margin-top: 2rem; display: block;" />`;
+            imagesHTML += `</div>`;
           }
         });
 
         popupContent.innerHTML = `
-          <div style="max-width: 90%; max-height: 90vh; overflow-y: auto; margin: 0 auto; padding: 2rem; text-align: left; line-height: 1.6; font-size: 0.9rem; box-sizing: border-box; background-color: white; border: 1px solid #333;">
+          <div style="max-width: 90%; max-height: 90vh; overflow-y: auto; margin: 0 auto; padding: 2rem; text-align: left; line-height: 1.6; font-size: 0.9rem; box-sizing: border-box; background-color: white; border: 1px solid #333; display: flex; flex-direction: column; align-items: center;">
             <h3 style="margin-bottom: 1rem;">${title}</h3>
-            <p style="white-space: pre-line; text-align: left;">${body}</p>
             ${imagesHTML}
           </div>
         `;
