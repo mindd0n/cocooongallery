@@ -419,7 +419,8 @@ const ContentDisplay = ({ buttonId, onClose }) => {
     }
   };
 
-
+  const [singingBowlAudio, setSingingBowlAudio] = useState(null);
+  const [isSingingBowlPlaying, setIsSingingBowlPlaying] = useState(false);
 
   useEffect(() => {
     console.log('ContentDisplay useEffect:', { buttonId, contentInfo });
@@ -489,6 +490,38 @@ const ContentDisplay = ({ buttonId, onClose }) => {
           }}
           onClick={e => e.stopPropagation()}
         >
+          {/* 싱잉볼 클릭 오버레이 */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '70%',
+              top: '40%',
+              width: '15%',
+              height: '30%',
+              cursor: 'pointer',
+              zIndex: 10,
+              // background: 'rgba(255,0,0,0.2)' // 개발 중 위치 확인용
+            }}
+            onClick={e => {
+              e.stopPropagation();
+              if (isSingingBowlPlaying && singingBowlAudio) {
+                singingBowlAudio.pause();
+                singingBowlAudio.currentTime = 0;
+                setIsSingingBowlPlaying(false);
+              } else {
+                const audio = new Audio('https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media/%EC%8B%B1%EC%9E%89%EB%B3%BC%ED%9A%A8%EA%B3%BC%EC%9D%8C.m4a');
+                audio.volume = 0.5;
+                audio.play();
+                setSingingBowlAudio(audio);
+                setIsSingingBowlPlaying(true);
+                // 재생이 끝나면 상태 초기화
+                audio.onended = () => {
+                  setIsSingingBowlPlaying(false);
+                  setSingingBowlAudio(null);
+                };
+              }
+            }}
+          />
           {/* 아이콘들 - 통합 클릭 처리 */}
           <div
             style={{
