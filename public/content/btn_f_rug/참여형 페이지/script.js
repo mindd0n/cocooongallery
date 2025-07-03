@@ -6,6 +6,26 @@ function isValidImage(src) {
   return true;
 }
 
+function getPopupImages(item, type) {
+  let images = [];
+  if (type === "image") {
+    if (item.dataset.images) {
+      images = item.dataset.images.split(',').map(s => s.trim()).filter(Boolean);
+    } else {
+      const src = item.getAttribute("src") || "";
+      if (src) images = [src];
+    }
+  } else if (type === "text") {
+    if (item.dataset.images) {
+      images = item.dataset.images.split(',').map(s => s.trim()).filter(Boolean);
+    } else {
+      const thumbImage = item.querySelector("img.text-image")?.src || "";
+      if (thumbImage) images = [thumbImage];
+    }
+  }
+  return images.filter(isValidImage);
+}
+
 function initTextPopupTriggers() {
   // 기존 이벤트 제거 후 재바인딩 (중복 방지)
   document.querySelectorAll(".popup-trigger").forEach(item => {
@@ -183,25 +203,12 @@ window.addEventListener("DOMContentLoaded", () => {
       const type = item.dataset.type;
       let title = item.dataset.title || "제목 없음";
       let body = (item.dataset.body || "설명이 없습니다.").replace(/\n/g, "<br>");
-      let images = [];
-      if (type === "image") {
-        if (item.dataset.images) {
-          images = item.dataset.images.split(',').map(s => s.trim()).filter(Boolean);
-        } else {
-          const src = item.getAttribute("src") || "";
-          if (src) images = [src];
-        }
-      } else if (type === "text") {
+      if (type === "text") {
         title = item.querySelector("h3")?.innerText || title;
         body = (item.querySelector("p")?.innerHTML || body).replace(/\n/g, "<br>");
-        if (item.dataset.images) {
-          images = item.dataset.images.split(',').map(s => s.trim()).filter(Boolean);
-        } else {
-          const thumbImage = item.querySelector("img.text-image")?.src || "";
-          if (thumbImage) images = [thumbImage];
-        }
       }
-      let imagesHTML = images.map(src => `<img src="${src}" style="width:100%;max-width:100%;height:auto;display:block;margin:0;">`).join('');
+      const images = getPopupImages(item, type);
+      let imagesHTML = images.map(src => `<img src="${src}" style="width:100%;max-width:100%;height:auto;display:block;margin:0 0 20px 0;">`).join('');
       popupOverlay.classList.remove("hidden");
       popupContent.innerHTML = `
         <div style="background:#fff; padding:2rem; border-radius:0; max-width:100%; max-height:90vh; overflow:auto; position:relative;">
