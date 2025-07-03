@@ -292,7 +292,6 @@ const GenericContent = ({ type, src, onClose, objectFit = 'contain', buttonId })
           ref={videoRef}
           src={src}
           style={{ maxWidth: '100%', maxHeight: '100%', width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: 'black', borderRadius: 8 }}
-          loop
           playsInline
           controls
           controlsList="nodownload"

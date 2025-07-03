@@ -5,9 +5,11 @@ import LoadingScreen from './components/LoadingScreen';
 import RightBottomControls from './components/RightBottomControls';
 
 function App() {
-  const [showIntro] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
   const [showLoading, setShowLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
+
+  console.log('App 렌더링:', { showIntro, showLoading, loadingProgress });
 
   // 커서 동적 변경은 body에만 적용
   useEffect(() => {
@@ -27,9 +29,10 @@ function App() {
   }, []);
 
   const handleIntroComplete = () => {
-    console.log('인트로 완료, 텍스처 로딩 시작');
-    setShowLoading(true);
-    setLoadingProgress(0);
+    console.log('인트로 완료, 바로 3D 룸으로 전환');
+    setShowIntro(false);
+    // setShowLoading(true);
+    // setLoadingProgress(0);
   };
 
   const handleLoadingComplete = () => {
@@ -42,13 +45,16 @@ function App() {
   };
 
   if (showIntro) {
+    console.log('IntroScreen 렌더링 중...');
     return <IntroScreen onComplete={handleIntroComplete} />;
   }
 
   if (showLoading) {
+    console.log('LoadingScreen 렌더링 중...');
     return <LoadingScreen progress={loadingProgress} message="텍스처 로딩 중..." />;
   }
 
+  console.log('RoomScene 렌더링 중...');
   return (
     <>
       <RoomScene 

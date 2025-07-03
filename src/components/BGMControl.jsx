@@ -8,10 +8,22 @@ const BGMControl = () => {
   const audioRef = useRef(null);
 
   useEffect(() => {
-    audioRef.current = new Audio(`${S3_BASE_URL}/bgm.mp3`);
+    audioRef.current = new Audio(`${S3_BASE_URL}/x.waybackhome.mp4`);
     audioRef.current.loop = true;
     audioRef.current.volume = 0.5;
-    // 자동 재생 시도는 제거 (브라우저 정책)
+    
+    // 방 진입 시 자동 재생 시도
+    const playAudio = async () => {
+      try {
+        await audioRef.current.play();
+        setIsPlaying(true);
+      } catch (e) {
+        console.error("자동 재생 실패:", e);
+        // 자동 재생이 실패해도 사용자가 버튼으로 재생 가능
+      }
+    };
+    
+    playAudio();
 
     return () => {
       if (audioRef.current) {

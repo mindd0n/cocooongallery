@@ -9,6 +9,7 @@ const IntroScreen = ({ onComplete }) => {
     const [showEnter, setShowEnter] = useState(false);
     const [videoDuration, setVideoDuration] = useState(0);
     const [enterHovered, setEnterHovered] = useState(false);
+    const [showSkip, setShowSkip] = useState(false);
 
     // 상태 로그
     console.log('IntroScreen 렌더링:', { isPlaying, showPlay, orientation });
@@ -178,6 +179,17 @@ const IntroScreen = ({ onComplete }) => {
         enterBtnTop = '47%';
     }
 
+    // 영상 재생 3초 후 스킵 버튼 fade-in
+    useEffect(() => {
+        let timer;
+        if (isPlaying) {
+            timer = setTimeout(() => setShowSkip(true), 3000);
+        } else {
+            setShowSkip(false);
+        }
+        return () => clearTimeout(timer);
+    }, [isPlaying]);
+
     return (
         <div 
             style={{ 
@@ -271,7 +283,7 @@ const IntroScreen = ({ onComplete }) => {
                 />
             )}
 
-            {/* 스킵 버튼 - 반응형 크기/위치 */}
+            {/* 스킵 버튼 - 반응형 크기/위치, 영상 재생 3초 후 fade-in */}
             <div
                 onClick={handleSkipClick}
                 style={{
@@ -284,7 +296,9 @@ const IntroScreen = ({ onComplete }) => {
                     backgroundImage: `url('/images/intro/btn_skip.png')`,
                     backgroundSize: 'contain',
                     backgroundRepeat: 'no-repeat',
-                    zIndex: 10
+                    zIndex: 10,
+                    opacity: showSkip ? 1 : 0,
+                    transition: 'opacity 0.7s cubic-bezier(0.4,0,0.2,1)'
                 }}
             />
         </div>

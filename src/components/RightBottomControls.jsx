@@ -25,7 +25,7 @@ const RightBottomControls = () => {
 
     useEffect(() => {
         // BGM 오디오 파일 로드
-        audioRef.current = new Audio(`${S3_BASE_URL}/bgm.mp3`);
+        audioRef.current = new Audio(`${S3_BASE_URL}/x.waybackhome.mp4`);
         audioRef.current.loop = true;
         audioRef.current.volume = 0.5; // 항상 50% 볼륨으로 고정
 
