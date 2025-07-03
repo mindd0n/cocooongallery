@@ -135,4 +135,29 @@ document.addEventListener("DOMContentLoaded", () => {
       popup.classList.remove("hidden");
     });
   });
+
+  const track = document.getElementById('sliderTrack');
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+
+  function updateSlider() {
+    track.style.transform = `translateX(-${current * 100}%)`;
+  }
+
+  document.querySelector('.slider-btn.prev').onclick = function() {
+    if (current > 0) {
+      current--;
+      updateSlider();
+    }
+  };
+
+  document.querySelector('.slider-btn.next').onclick = function() {
+    if (current < slides.length - 1) {
+      current++;
+      updateSlider();
+    }
+  };
+
+  // 초기화
+  updateSlider();
 });
