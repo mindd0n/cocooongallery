@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import RoomScene from './components/Room';
 import IntroScreen from './components/IntroScreen.jsx';
 import LoadingScreen from './components/LoadingScreen';
