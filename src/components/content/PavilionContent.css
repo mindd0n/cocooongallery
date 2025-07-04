@@ -115,46 +115,99 @@
 }
 
 .pavilion-container {
-    /* 팝업창 배경 이미지는 인라인 style에서만 지정, popup_bg 등 중첩 방지 */
-    width: 100vw;
-    height: 100vh;
+  width: 90vw;
+  max-width: 1100px;
+  min-width: 320px;
+  height: auto;
+  min-height: 60vw;
+  max-height: 90vh;
+  padding: 48px 32px;
+  background-color: transparent !important;
+  border-radius: 24px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .pavilion-container {
+    width: 94vw;
+    aspect-ratio: 2.166;
+    height: auto;
+    max-width: 98vw;
+    max-height: 80vh;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+    background-color: transparent !important;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 2000;
-    min-height: 100vh;
-    background-color: transparent !important;
+    position: relative;
+  }
+  .poster-list {
+    gap: 0;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+  }
+  .poster-button {
+    max-width: 15vw;
+    margin: 0 auto;
+  }
+  .poster-button img {
+    max-width: 80%;
+    max-height: 60%;
+    margin: 0 auto;
+    display: block;
+  }
 }
 
 .poster-list {
-    display: flex;
-    gap: 20px;
-    align-items: flex-end;
-    padding-bottom: 5%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 30px;
+  width: 100%;
+  max-width: 1200px;
 }
 
 .poster-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    border-radius: 10px;
+  background: none;
+  border: none;
+  padding: 0;
+  width: 100%;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
 .poster-button:hover {
-    transform: translateY(-10px) scale(1.05);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  transform: scale(1.05);
 }
 
 .poster-button img {
-    display: block;
-    width: 180px;
-    height: auto;
-    border-radius: 8px;
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+}
+
+/* 모바일 미디어쿼리에서 flex-wrap, width 조정 없이 동일하게 유지 */
+@media (max-width: 768px) {
+  .poster-button img {
+    width: 38vw;
+    max-width: 60vw;
+    max-height: 38vw;
+  }
+  .poster-list {
+    gap: 8vw;
+    padding-bottom: 2vw;
+  }
 }
 
 /* --- ?세 ?업 (구조 변? --- */

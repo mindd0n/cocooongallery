@@ -202,7 +202,8 @@ const Button = React.memo(function Button({
   forceVisible,
   polygonOffset,
   polygonOffsetFactor,
-  polygonOffsetUnits
+  polygonOffsetUnits,
+  setIsLampOverlay
 }) {
   const isHovered = hoveredObject === buttonKey;
   const [size, texture, image, canvas, ready] = useButtonImageData(isHovered ? hoverSrc : src, wallType);
@@ -220,7 +221,6 @@ const Button = React.memo(function Button({
     const dy = e.clientY - clickStart.current.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist < 5) { // 5px 이하 이동만 클릭으로 인정
-      // 기존 handleDoubleClick 로직 복사
       if (!image || !texture || !canvas) return;
       const uv = e.uv;
       if (!uv) return;
@@ -230,6 +230,13 @@ const Button = React.memo(function Button({
       const alpha = ctx.getImageData(x, y, 1, 1).data[3] / 255;
       if (alpha > 0.05) {
         e.stopPropagation();
+        // 램프(조명) 아이콘은 카메라 확대/팝업 없이 오버레이만 토글
+        if (buttonKey === 'btn_c_lamp') {
+          setIsLampOverlay(v => !v);
+          setHoveredObject(null);
+          clickStart.current = null;
+          return;
+        }
         const zoomTarget = getZoomTargetForButton(position, wallType);
         animateCamera(
           {
@@ -244,7 +251,7 @@ const Button = React.memo(function Button({
       }
     }
     clickStart.current = null;
-  }, [position, image, texture, canvas, buttonKey, wallType, animateCamera, setHoveredObject, setSelectedButton]);
+  }, [position, image, texture, canvas, buttonKey, wallType, animateCamera, setHoveredObject, setSelectedButton, setIsLampOverlay]);
 
   const handlePointerMove = useCallback((e) => {
     if (!image || !texture || !canvas) return;
@@ -351,7 +358,8 @@ const Room = ({
   setHoveredObject, 
   hoveredObject, 
   setSelectedButton,
-  animateCamera
+  animateCamera,
+  setIsLampOverlay
 }) => {
   // useLoader로 벽 텍스처 로딩
   const frontTex = useLoader(THREE.TextureLoader, wallTexturePaths.front);
@@ -532,35 +540,35 @@ const Room = ({
   // wallButtonData를 로컬 경로로 변경
   const wallButtonData = {
     'front': [
-      { key: 'btn_p_tree',     src: '/images/buttons/wall_photo_btn/btn_p_tree.png',     hoverSrc: '/images/buttons/wall_photo_btn/btn_p_tree_hover.png' },
-      { key: 'btn_p_pavilion', src: '/images/buttons/wall_photo_btn/btn_p_pavilion.png', hoverSrc: '/images/buttons/wall_photo_btn/btn_p_pavilion_hover.png' },
-      { key: 'btn_p_go',       src: '/images/buttons/wall_photo_btn/btn_p_go.png',       hoverSrc: '/images/buttons/wall_photo_btn/btn_p_go_hover.png' },
-      { key: 'btn_p_note',     src: '/images/buttons/wall_photo_btn/btn_p_note.png',     hoverSrc: '/images/buttons/wall_photo_btn/btn_p_note_hover.png' }
+      { key: 'btn_p_tree',     src: '/images/buttons/wall_photo_btn/btn_p_tree.png',     hoverSrc: '/images/buttons/wall_photo_btn/btn_p_tree.png' },
+      { key: 'btn_p_pavilion', src: '/images/buttons/wall_photo_btn/btn_p_pavilion.png', hoverSrc: '/images/buttons/wall_photo_btn/btn_p_pavilion.png' },
+      { key: 'btn_p_go',       src: '/images/buttons/wall_photo_btn/btn_p_go.png',       hoverSrc: '/images/buttons/wall_photo_btn/btn_p_go.png' },
+      { key: 'btn_p_note',     src: '/images/buttons/wall_photo_btn/btn_p_note.png',     hoverSrc: '/images/buttons/wall_photo_btn/btn_p_note.png' }
     ],
     'back': [
-      { key: 'btn_w_sun',    src: '/images/buttons/wall_walk_btn/btn_w_sun.png',    hoverSrc: '/images/buttons/wall_walk_btn/btn_w_sun_hover.png' },
-      { key: 'btn_w_bridge', src: '/images/buttons/wall_walk_btn/btn_w_bridge.png', hoverSrc: '/images/buttons/wall_walk_btn/btn_w_bridge_hover.png' },
-      { key: 'btn_w_walk',   src: '/images/buttons/wall_walk_btn/btn_w_walk.png',   hoverSrc: '/images/buttons/wall_walk_btn/btn_w_walk_hover.png' },
-      { key: 'btn_w_sign',   src: '/images/buttons/wall_walk_btn/btn_w_sign.png',   hoverSrc: '/images/buttons/wall_walk_btn/btn_w_sign_hover.png' },
+      { key: 'btn_w_sun',    src: '/images/buttons/wall_walk_btn/btn_w_sun.png',    hoverSrc: '/images/buttons/wall_walk_btn/btn_w_sun.png' },
+      { key: 'btn_w_bridge', src: '/images/buttons/wall_walk_btn/btn_w_bridge.png', hoverSrc: '/images/buttons/wall_walk_btn/btn_w_bridge.png' },
+      { key: 'btn_w_walk',   src: '/images/buttons/wall_walk_btn/btn_w_walk.png',   hoverSrc: '/images/buttons/wall_walk_btn/btn_w_walk.png' },
+      { key: 'btn_w_sign',   src: '/images/buttons/wall_walk_btn/btn_w_sign.png',   hoverSrc: '/images/buttons/wall_walk_btn/btn_w_sign.png' },
     ],
     'left': [
-      { key: 'btn_b_home',    src: '/images/buttons/wall_bus-stop_btn/btn_b_home.png',    hoverSrc: '/images/buttons/wall_bus-stop_btn/btn_b_home_hover.png' },
-      { key: 'btn_b_busstop', src: '/images/buttons/wall_bus-stop_btn/btn_b_busstop.png', hoverSrc: '/images/buttons/wall_bus-stop_btn/btn_b_busstop_hover.png' },
-      { key: 'btn_b_bus',     src: '/images/buttons/wall_bus-stop_btn/btn_b_bus.png',     hoverSrc: '/images/buttons/wall_bus-stop_btn/btn_b_bus_hover.png' },
+      { key: 'btn_b_home',    src: '/images/buttons/wall_bus-stop_btn/btn_b_home.png',    hoverSrc: '/images/buttons/wall_bus-stop_btn/btn_b_home.png' },
+      { key: 'btn_b_busstop', src: '/images/buttons/wall_bus-stop_btn/btn_b_busstop.png', hoverSrc: '/images/buttons/wall_bus-stop_btn/btn_b_busstop.png' },
+      { key: 'btn_b_bus',     src: '/images/buttons/wall_bus-stop_btn/btn_b_bus.png',     hoverSrc: '/images/buttons/wall_bus-stop_btn/btn_b_bus.png' },
     ],
     'right': [
-      { key: 'btn_h_star',   src: '/images/buttons/wall_home_btn/btn_h_star.png',   hoverSrc: '/images/buttons/wall_home_btn/btn_h_star_hover.png' },
-      { key: 'btn_h_home',   src: '/images/buttons/wall_home_btn/btn_h_home.png',   hoverSrc: '/images/buttons/wall_home_btn/btn_h_home_hover.png' },
-      { key: 'btn_h_dog',    src: '/images/buttons/wall_home_btn/btn_h_dog.png',    hoverSrc: '/images/buttons/wall_home_btn/btn_h_dog_hover.png' },
-      { key: 'btn_h_ribbon', src: '/images/buttons/wall_home_btn/btn_h_ribbon.png', hoverSrc: '/images/buttons/wall_home_btn/btn_h_ribbon_hover.png' },
+      { key: 'btn_h_star',   src: '/images/buttons/wall_home_btn/btn_h_star.png',   hoverSrc: '/images/buttons/wall_home_btn/btn_h_star.png' },
+      { key: 'btn_h_home',   src: '/images/buttons/wall_home_btn/btn_h_home.png',   hoverSrc: '/images/buttons/wall_home_btn/btn_h_home.png' },
+      { key: 'btn_h_dog',    src: '/images/buttons/wall_home_btn/btn_h_dog.png',    hoverSrc: '/images/buttons/wall_home_btn/btn_h_dog.png' },
+      { key: 'btn_h_ribbon', src: '/images/buttons/wall_home_btn/btn_h_ribbon.png', hoverSrc: '/images/buttons/wall_home_btn/btn_h_ribbon.png' },
     ],
     'ceiling': [
-      { key: 'btn_c_lamp',   src: '/images/buttons/wall_ceiling_btn/btn_c_lamp.png',   hoverSrc: '/images/buttons/wall_ceiling_btn/btn_c_lamp_hover.png', left: '38%', top: '18%', width: '8%', height: '8%' },
+      { key: 'btn_c_lamp',   src: '/images/buttons/wall_ceiling_btn/btn_c_lamp.png',   hoverSrc: '/images/buttons/wall_ceiling_btn/btn_c_lamp.png', left: '38%', top: '18%', width: '8%', height: '8%' },
       { key: 'btn_c_heart',  src: '/images/buttons/wall_ceiling_btn/btn_c_heart.png',  hoverSrc: '/images/buttons/wall_ceiling_btn/btn_c_heart_hover.png', left: '60%', top: '28%', width: '10%', height: '10%' },
     ],
     'floor': [
-      { key: 'btn_f_rug',    src: '/images/buttons/wall_floor_btn/btn_f_rug.png',    hoverSrc: '/images/buttons/wall_floor_btn/btn_f_rug_hover.png' },
-      { key: 'btn_f_phone',  src: '/images/buttons/wall_floor_btn/btn_f_phone.png',  hoverSrc: '/images/buttons/wall_floor_btn/btn_f_phone_hover.png' },
+      { key: 'btn_f_rug',    src: '/images/buttons/wall_floor_btn/btn_f_rug.png',    hoverSrc: '/images/buttons/wall_floor_btn/btn_f_rug.png' },
+      { key: 'btn_f_phone',  src: '/images/buttons/wall_floor_btn/btn_f_phone.png',  hoverSrc: '/images/buttons/wall_floor_btn/btn_f_phone.png' },
     ],
   };
 
@@ -658,7 +666,7 @@ const Room = ({
                     buttonKey={btn.key}
                     position={pos}
                     src={btn.src}
-                    hoverSrc={btn.src.replace(/\.png$/, '_hover.png')}
+                    hoverSrc={btn.key === 'btn_c_lamp' ? btn.src : btn.src.replace(/\.png$/, '_hover.png')}
                     wallType={wall.type}
                     setHoveredObject={setHoveredObject}
                     hoveredObject={hoveredObject}
@@ -669,6 +677,7 @@ const Room = ({
                     polygonOffset={true}
                     polygonOffsetFactor={-2}
                     polygonOffsetUnits={-2}
+                    setIsLampOverlay={setIsLampOverlay}
                   />
                 );
               })}
@@ -707,7 +716,7 @@ const Room = ({
                   buttonKey={btn.key}
                   position={pos}
                   src={btn.src}
-                  hoverSrc={btn.src.replace(/\.png$/, '_hover.png')}
+                  hoverSrc={btn.key === 'btn_c_lamp' ? btn.src : btn.src.replace(/\.png$/, '_hover.png')}
                   wallType="ceiling"
                   setHoveredObject={setHoveredObject}
                   hoveredObject={hoveredObject}
@@ -718,6 +727,7 @@ const Room = ({
                   polygonOffset={true}
                   polygonOffsetFactor={-2}
                   polygonOffsetUnits={-2}
+                  setIsLampOverlay={setIsLampOverlay}
                 />
               );
             })}
@@ -755,7 +765,7 @@ const Room = ({
                   buttonKey={btn.key}
                   position={pos}
                   src={btn.src}
-                  hoverSrc={btn.src.replace(/\.png$/, '_hover.png')}
+                  hoverSrc={btn.key === 'btn_c_lamp' ? btn.src : btn.src.replace(/\.png$/, '_hover.png')}
                   wallType="floor"
                   setHoveredObject={setHoveredObject}
                   hoveredObject={hoveredObject}
@@ -766,6 +776,7 @@ const Room = ({
                   polygonOffset={true}
                   polygonOffsetFactor={-2}
                   polygonOffsetUnits={-2}
+                  setIsLampOverlay={setIsLampOverlay}
                 />
               );
             })}
@@ -783,9 +794,10 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
   const [isAnimating, setIsAnimating] = useState(false);
   const controlsRef = useRef();
   const [restoreView, setRestoreView] = useState(null);
+  const [isLampOverlay, setIsLampOverlay] = useState(false);
 
   // 기기별 성능 최적화 설정
-  const isMobile = window.innerWidth < 768;
+  const isMobile = window.innerWidth < 768 && window.innerHeight > window.innerWidth;
   const devicePixelRatio = isMobile ? [1, 1.5] : [1, 2];
 
   // 텍스처 로딩 상태 추적
@@ -876,6 +888,15 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
     }
   }, [isHovered]);
 
+  // Button 클릭 핸들러에서 램프 클릭 시 오버레이 토글
+  const handleButtonClick = useCallback((key) => {
+    if (key === 'btn_c_lamp') {
+      setIsLampOverlay(v => !v);
+      return;
+    }
+    setSelectedButton(key);
+  }, [setSelectedButton]);
+
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
       <div
@@ -943,6 +964,7 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
               hoveredObject={hoveredObject}
               setSelectedButton={setSelectedButton}
               animateCamera={animateCamera}
+              setIsLampOverlay={setIsLampOverlay}
             />
           </Suspense>
           {hoveredObject && buttonRef.current && buttonRef.current.getObjectByName(hoveredObject) && (
@@ -965,6 +987,22 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
           onClose={handleRestore}
         />
       )}
+
+      {/* 조명 오버레이: 검정색 60% */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.6)',
+          opacity: isLampOverlay ? 1 : 0,
+          pointerEvents: 'none',
+          transition: 'opacity 0.4s',
+          zIndex: 9999
+        }}
+      />
     </div>
   );
 }

@@ -987,6 +987,10 @@ const ContentDisplay = ({ buttonId, onClose }) => {
     );
   }
 
+  if (buttonId === 'btn_c_lamp') {
+    return null;
+  }
+
   return (
     <div 
       className="content-display"

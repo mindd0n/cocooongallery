@@ -15,7 +15,7 @@ const IntroScreen = ({ onComplete }) => {
     console.log('IntroScreen 렌더링:', { isPlaying, showPlay, orientation });
 
     // 반응형 이미지/비디오 소스 설정
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
     let videoSrc;
     if (!isMobile) {
         videoSrc = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media/intro_pc.MP4';
@@ -60,14 +60,14 @@ const IntroScreen = ({ onComplete }) => {
         enterBtnWidth = '220px';
     }
 
-    // play 버튼 크기(enter 버튼보다 70%로 더 작게)
+    // play 버튼 크기(enter 버튼보다 더 작게)
     let playBtnSize;
     if (!isMobile) {
-        playBtnSize = '378px'; // 540 * 0.7
+        playBtnSize = '288px'; // 기존 240px → 20% 증가
     } else if (orientation === 'landscape') {
-        playBtnSize = '378px';
+        playBtnSize = '288px';
     } else {
-        playBtnSize = '154px'; // 220 * 0.7
+        playBtnSize = '116px'; // 기존 96px → 20% 증가
     }
 
     // play 버튼 클릭 시
