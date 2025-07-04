@@ -4,11 +4,9 @@ import './RightBottomControls.css';
 // S3 기본 URL
 const S3_BASE_URL = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media';
 
-const RightBottomControls = () => {
-    const [isMusicOn, setIsMusicOn] = useState(true);
+const RightBottomControls = ({ isMusicOn, setIsMusicOn, audioRef }) => {
     const [showMap, setShowMap] = useState(false);
     const [showRestPopup, setShowRestPopup] = useState(false);
-    const audioRef = useRef(null);
 
     useEffect(() => {
         const imageInfos = {
@@ -23,24 +21,6 @@ const RightBottomControls = () => {
         });
     }, []);
 
-    useEffect(() => {
-        // BGM 오디오 파일 로드
-        audioRef.current = new Audio(`${S3_BASE_URL}/x.waybackhome.mp4`);
-        audioRef.current.loop = true;
-        audioRef.current.volume = 0.5; // 항상 50% 볼륨으로 고정
-
-        if (isMusicOn) {
-            audioRef.current.play().catch(e => console.error("Audio play failed:", e));
-        }
-
-        return () => {
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current = null;
-            }
-        };
-    }, [isMusicOn]);
-
     const toggleMusic = () => {
         if (audioRef.current) {
             if (isMusicOn) {
@@ -48,8 +28,8 @@ const RightBottomControls = () => {
             } else {
                 audioRef.current.play().catch(e => console.error("Audio play failed:", e));
             }
-            setIsMusicOn(!isMusicOn);
         }
+        setIsMusicOn(!isMusicOn);
     };
 
     const toggleMap = (e) => {

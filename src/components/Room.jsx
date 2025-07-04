@@ -758,17 +758,13 @@ const Room = ({
   );
 };
 
-export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
+export default function RoomScene({ onLoadingProgress, onLoadingComplete, selectedButton, setSelectedButton }) {
   const [isHovered, setIsHovered] = useState(false);
   const buttonRef = useRef();
-  // const [outlineReady, setOutlineReady] = useState(false);
-  // const [cursor, setCursor] = useState(`url(/images/cursor.png) 16 44, auto`);
   const [hoveredObject, setHoveredObject] = useState(null);
-  const [selectedButton, setSelectedButton] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const controlsRef = useRef();
   const [restoreView, setRestoreView] = useState(null);
-  // const [texturesLoaded, setTexturesLoaded] = useState(false);
 
   // 기기별 성능 최적화 설정
   const isMobile = window.innerWidth < 768;
@@ -784,7 +780,6 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
         if (progress >= 100) {
           progress = 100;
           clearInterval(interval);
-          // setTexturesLoaded(true);
           if (onLoadingComplete) onLoadingComplete();
         }
         if (onLoadingProgress) onLoadingProgress(progress);
@@ -855,8 +850,6 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleRestore]);
 
-  // const handleOverlayClick = handleRestore;
-
   useEffect(() => {
     if (isHovered && buttonRef.current && buttonRef.current.parent) {
       // setOutlineReady(true);
@@ -864,11 +857,6 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete }) {
       // setOutlineReady(false);
     }
   }, [isHovered]);
-
-  // 텍스처가 로딩되지 않았으면 아무것도 렌더링하지 않음
-  // if (!texturesLoaded) {
-  //   return null;
-  // }
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
