@@ -348,6 +348,11 @@ const Room = ({
   const ceilingTex = useLoader(THREE.TextureLoader, wallTexturePaths.ceiling);
   const floorTex = useLoader(THREE.TextureLoader, wallTexturePaths.floor);
   
+  // 텍스처 색공간을 sRGB로 명시
+  [frontTex, backTex, leftTex, rightTex, ceilingTex, floorTex].forEach(tex => {
+    if (tex) tex.colorSpace = THREE.SRGBColorSpace;
+  });
+  
   // 텍스처 로딩 상태 추적 - 한 번 로딩되면 계속 유지
   const [texturesLoaded, setTexturesLoaded] = useState({
     front: false,
@@ -557,7 +562,7 @@ const Room = ({
 
   return (
     <>
-      {/* 조명 추가 */}
+      {/* 조명 복구 */}
       <ambientLight intensity={3.0} color="#ffffff" />
       <directionalLight 
         position={[0, 100, 0]} 
@@ -881,7 +886,10 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
             alpha: false,
             stencil: false,
             depth: true,
-            logarithmicDepthBuffer: false
+            logarithmicDepthBuffer: false,
+            outputColorSpace: THREE.SRGBColorSpace,
+            toneMapping: THREE.NoToneMapping,
+            toneMappingExposure: 1.0
           }}
           camera={{
             position: INITIAL_CAMERA_POSITION,
