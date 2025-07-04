@@ -69,9 +69,17 @@ export default function HoyaStoryModal({ onClose }) {
   }, [currentIndex]);
 
   const goNext = () => {
-    setCurrentIndex((prev) =>
-      prev < hoyaStories.length - 1 ? prev + 1 : onClose()
-    );
+    setCurrentIndex((prev) => {
+      if (prev < hoyaStories.length - 1) {
+        return prev + 1;
+      } else {
+        // 마지막 스토리일 때 부모 창에 메시지 전송
+        if (window.parent) {
+          window.parent.postMessage({ type: 'CLOSE_HOYA_STORY' }, '*');
+        }
+        return prev;
+      }
+    });
   };
 
   const goPrev = () => {

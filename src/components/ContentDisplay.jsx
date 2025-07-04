@@ -407,6 +407,17 @@ const ContentDisplay = ({ buttonId, onClose }) => {
     }
   }, [buttonId, contentInfo]);
 
+  // 호야스토리(강아지) 팝업 자동 닫힘 메시지 처리
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (buttonId === 'btn_h_dog' && event.data && event.data.type === 'CLOSE_HOYA_STORY') {
+        console.log('호야스토리 종료 메시지 수신');
+        onClose();
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [buttonId, onClose]);
 
   
   const handleWrapperClick = (e) => {
