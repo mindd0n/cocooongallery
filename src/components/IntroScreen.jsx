@@ -195,9 +195,10 @@ const IntroScreen = ({ onComplete }) => {
         <div 
             style={{ 
                 position: 'relative', 
-                width: '100%', 
+                width: '100vw', 
                 height: '100vh', 
                 backgroundColor: '#000',
+                overflow: 'hidden',
                 cursor: showPlay ? 'pointer' : 'default'
             }}
         >

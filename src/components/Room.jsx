@@ -1001,19 +1001,29 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
   }, []);
 
   return (
-    <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
+    <div style={{ 
+      position: 'relative', 
+      width: '100vw', 
+      height: '100vh',
+      overflow: 'hidden'
+    }}>
       <div
         className="canvas-container"
         style={{
-          width: '100%',
-          height: '100%',
-          cursor: isHovered ? `url(/images/cursor-click.png) 16 44, auto` : `url(/images/cursor.png) 16 44, auto`,
+          width: '100vw',
+          height: '100vh',
+          cursor: isHovered ? `url(/images/cursor-click.png) 16 20, auto` : `url(/images/cursor.png) 16 20, auto`,
           position: 'relative',
           zIndex: 1,
           pointerEvents: selectedButton ? 'none' : 'auto',
         }}
       >
         <Canvas
+          style={{
+            width: '100vw',
+            height: '100vh',
+            display: 'block'
+          }}
           dpr={devicePixelRatio}
           shadows="soft"
           gl={{

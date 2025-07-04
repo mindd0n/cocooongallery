@@ -56,14 +56,14 @@ function App() {
 
   useEffect(() => {
     const handlePointerDown = () => {
-      document.body.style.cursor = "url('/images/cursor-click.png') 16 44, auto";
+      document.body.style.cursor = "url('/images/cursor-click.png') 16 20, auto";
     };
     const handlePointerUp = () => {
-      document.body.style.cursor = "url('/images/cursor.png') 16 44, auto";
+      document.body.style.cursor = "url('/images/cursor.png') 16 20, auto";
     };
     window.addEventListener('pointerdown', handlePointerDown);
     window.addEventListener('pointerup', handlePointerUp);
-    document.body.style.cursor = "url('/images/cursor.png') 16 44, auto";
+    document.body.style.cursor = "url('/images/cursor.png') 16 20, auto";
     return () => {
       window.removeEventListener('pointerdown', handlePointerDown);
       window.removeEventListener('pointerup', handlePointerUp);
@@ -106,7 +106,12 @@ function App() {
 
   console.log('RoomScene 렌더링 중...');
   return (
-    <>
+    <div style={{
+      width: '100vw',
+      height: '100vh',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
       <RoomScene 
         onLoadingProgress={handleLoadingProgress}
         onLoadingComplete={handleLoadingComplete}
@@ -118,7 +123,7 @@ function App() {
         setIsMusicOn={setIsMusicOn}
         audioRef={audioRef}
       />
-    </>
+    </div>
   );
 }
 

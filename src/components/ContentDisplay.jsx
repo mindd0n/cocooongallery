@@ -323,6 +323,7 @@ const GenericContent = ({ type, src, onClose, objectFit = 'contain', buttonId })
 function PlaySingingBowlSoundOnce() {
   useEffect(() => {
     const audio = new window.Audio('/content/btn_p_go/싱잉볼효과음.m4a');
+    audio.volume = 0.5;
     audio.play();
   }, []);
   return null;
