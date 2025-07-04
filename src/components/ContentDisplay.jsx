@@ -1106,12 +1106,17 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               );
             } else if (buttonId === 'btn_h_dog') {
               // 강아지 버튼은 iframe으로 연결
+              console.log('btn_h_dog iframe src:', ContentMap[buttonId].src);
               return (
                 <iframe
                   src={ContentMap[buttonId].src}
                   style={{ width: '100%', height: '100%', border: 'none', background: 'black' }}
                   title="hoya-story"
                   allowFullScreen
+                  allow="autoplay; fullscreen; microphone; camera"
+                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+                  onLoad={() => console.log('btn_h_dog iframe loaded successfully')}
+                  onError={(e) => console.error('btn_h_dog iframe error:', e)}
                 />
               );
             } else if (buttonId === 'btn_f_phone') {

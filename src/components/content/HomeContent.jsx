@@ -107,7 +107,8 @@ const HomeContent = () => {
       case 'icon_o':
         return <GenericContent type="video" src={`${S3_BASE_URL}/O.mp4`} />;
       case 'icon_p':
-        return <iframe key="iframe_p" src="/content/btn_h_home/P.수면신문/dist/index.html" style={{ width: '100%', height: '100%', border: 'none', minHeight: '600px' }} title="수면신문" />;
+        console.log('수면신문 iframe src:', '/content/btn_h_home/P.수면신문/dist/index.html');
+        return <iframe key="iframe_p" src="/content/btn_h_home/P.수면신문/dist/index.html" style={{ width: '100%', height: '100%', border: 'none', minHeight: '600px' }} title="수면신문" allow="autoplay; fullscreen; microphone; camera" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals" onLoad={() => console.log('수면신문 iframe loaded successfully')} onError={(e) => console.error('수면신문 iframe error:', e)} />;
       case 'icon_q':
         return <GenericContent type="video" src={`${S3_BASE_URL}/Q.mp4`} />;
       default: return null;
