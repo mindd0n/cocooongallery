@@ -944,7 +944,7 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
         setRestoreView(null);
       }
     );
-  }, [selectedButton, restoreView, animateCamera]);
+  }, [selectedButton, restoreView, animateCamera, setSelectedButton]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
