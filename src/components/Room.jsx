@@ -203,7 +203,8 @@ const Button = React.memo(function Button({
   polygonOffset,
   polygonOffsetFactor,
   polygonOffsetUnits,
-  setIsLampOverlay
+  setIsLampOverlay,
+  handleButtonClick
 }) {
   const isHovered = hoveredObject === buttonKey;
   const [size, texture, image, canvas, ready] = useButtonImageData(isHovered ? hoverSrc : src, wallType);
@@ -237,6 +238,13 @@ const Button = React.memo(function Button({
           clickStart.current = null;
           return;
         }
+        // 디지털디톡스 버튼은 handleButtonClick 호출
+        if (buttonKey === 'btn_f_phone') {
+          handleButtonClick && handleButtonClick('btn_f_phone');
+          setHoveredObject(null);
+          clickStart.current = null;
+          return;
+        }
         const zoomTarget = getZoomTargetForButton(position, wallType);
         animateCamera(
           {
@@ -251,7 +259,7 @@ const Button = React.memo(function Button({
       }
     }
     clickStart.current = null;
-  }, [position, image, texture, canvas, buttonKey, wallType, animateCamera, setHoveredObject, setSelectedButton, setIsLampOverlay]);
+  }, [position, image, texture, canvas, buttonKey, wallType, animateCamera, setHoveredObject, setSelectedButton, setIsLampOverlay, handleButtonClick]);
 
   const handlePointerMove = useCallback((e) => {
     if (!image || !texture || !canvas) return;
@@ -359,7 +367,8 @@ const Room = ({
   hoveredObject, 
   setSelectedButton,
   animateCamera,
-  setIsLampOverlay
+  setIsLampOverlay,
+  handleButtonClick
 }) => {
   // useLoader로 벽 텍스처 로딩
   const frontTex = useLoader(THREE.TextureLoader, wallTexturePaths.front);
@@ -678,6 +687,7 @@ const Room = ({
                     polygonOffsetFactor={-2}
                     polygonOffsetUnits={-2}
                     setIsLampOverlay={setIsLampOverlay}
+                    handleButtonClick={handleButtonClick}
                   />
                 );
               })}
@@ -728,6 +738,7 @@ const Room = ({
                   polygonOffsetFactor={-2}
                   polygonOffsetUnits={-2}
                   setIsLampOverlay={setIsLampOverlay}
+                  handleButtonClick={handleButtonClick}
                 />
               );
             })}
@@ -777,6 +788,7 @@ const Room = ({
                   polygonOffsetFactor={-2}
                   polygonOffsetUnits={-2}
                   setIsLampOverlay={setIsLampOverlay}
+                  handleButtonClick={handleButtonClick}
                 />
               );
             })}
@@ -795,6 +807,15 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
   const controlsRef = useRef();
   const [restoreView, setRestoreView] = useState(null);
   const [isLampOverlay, setIsLampOverlay] = useState(false);
+  // 디지털디톡스 효과 상태
+  const [phoneEffect, setPhoneEffect] = useState({
+    active: false,
+    showStupid: false,
+    showText: false,
+    flash: false,
+    flashCount: 0
+  });
+  const phoneEffectTimeouts = useRef([]);
 
   // 기기별 성능 최적화 설정
   const isMobile = window.innerWidth < 768 && window.innerHeight > window.innerWidth;
@@ -888,14 +909,43 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
     }
   }, [isHovered]);
 
-  // Button 클릭 핸들러에서 램프 클릭 시 오버레이 토글
+  // 디지털디톡스 효과 트리거 함수
+  const triggerPhoneEffect = useCallback(() => {
+    if (phoneEffect.active) return; // 중복 방지
+    setPhoneEffect({ active: true, showStupid: false, showText: true, flash: true, flashCount: 1 });
+    // 경고음
+    const sound = new window.Audio('/content/btn_f_phone/V.디지털디톡스/alert-sound.mp3');
+    sound.play();
+    // stay away 텍스트 6초간 노출
+    phoneEffectTimeouts.current.push(setTimeout(() => setPhoneEffect(pe => ({ ...pe, showText: false })), 6000));
+    // 붉은 플래시 3회
+    for (let i = 1; i <= 3; i++) {
+      phoneEffectTimeouts.current.push(setTimeout(() => setPhoneEffect(pe => ({ ...pe, flash: true, flashCount: i })), (i-1)*2000));
+      phoneEffectTimeouts.current.push(setTimeout(() => setPhoneEffect(pe => ({ ...pe, flash: false })), (i-1)*2000+1000));
+    }
+    // 3초 후 StupidPhone 등장
+    phoneEffectTimeouts.current.push(setTimeout(() => setPhoneEffect(pe => ({ ...pe, showStupid: true })), 3000));
+    // 6초 후 리셋
+    phoneEffectTimeouts.current.push(setTimeout(() => setPhoneEffect({ active: false, showStupid: false, showText: false, flash: false, flashCount: 0 }), 6000));
+  }, [phoneEffect.active]);
+
+  // btn_f_phone 클릭 핸들러에서 팝업 대신 triggerPhoneEffect 호출
   const handleButtonClick = useCallback((key) => {
     if (key === 'btn_c_lamp') {
       setIsLampOverlay(v => !v);
       return;
     }
+    if (key === 'btn_f_phone') {
+      triggerPhoneEffect();
+      return;
+    }
     setSelectedButton(key);
-  }, [setSelectedButton]);
+  }, [setSelectedButton, setIsLampOverlay, triggerPhoneEffect]);
+
+  // 컴포넌트 언마운트 시 타임아웃 정리
+  React.useEffect(() => {
+    return () => { phoneEffectTimeouts.current.forEach(clearTimeout); };
+  }, []);
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
@@ -965,6 +1015,7 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
               setSelectedButton={setSelectedButton}
               animateCamera={animateCamera}
               setIsLampOverlay={setIsLampOverlay}
+              handleButtonClick={handleButtonClick}
             />
           </Suspense>
           {hoveredObject && buttonRef.current && buttonRef.current.getObjectByName(hoveredObject) && (
@@ -988,6 +1039,27 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
         />
       )}
 
+      {/* 디지털디톡스 효과 오버레이 */}
+      {phoneEffect.active && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 9998,
+          pointerEvents: 'none',
+        }}>
+          {/* 휴대폰 아이콘 */}
+          <img src="/content/btn_f_phone/V.디지털디톡스/phone-icon.png" alt="phone" style={{ position: 'absolute', top: phoneEffect.active ? '50%' : '80%', left: phoneEffect.active ? '50%' : '70%', width: phoneEffect.active ? 300 : 80, transform: 'translate(-50%, -50%) scale(' + (phoneEffect.active ? 2 : 1) + ')', transition: 'top 1s, left 1s, transform 1s', zIndex: 2 }} />
+          {/* StupidPhone */}
+          <img src="/content/btn_f_phone/V.디지털디톡스/stupid-phone.png" alt="stupid" style={{ position: 'absolute', top: '50%', left: '50%', width: 300, transform: 'translate(-50%, -50%) scale(2)', opacity: phoneEffect.showStupid ? 1 : 0, transition: 'opacity 1s', zIndex: 3 }} />
+          {/* Stay Away 텍스트 */}
+          <img src="/content/btn_f_phone/V.디지털디톡스/Stay away.png" alt="stay away" style={{ position: 'absolute', top: '50%', left: '50%', width: '60vw', transform: 'translate(-50%, -50%)', opacity: phoneEffect.showText ? 1 : 0, transition: 'opacity 0.5s', zIndex: 4 }} />
+          {/* 붉은 플래시 */}
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', background: phoneEffect.flash ? 'rgba(255,0,0,0.5)' : 'rgba(255,0,0,0)', transition: 'background 0.5s', zIndex: 5 }} />
+        </div>
+      )}
       {/* 조명 오버레이: 검정색 60% */}
       <div
         style={{
