@@ -50,14 +50,24 @@ const IntroScreen = ({ onComplete }) => {
     }
     const playBtnSrc = '/images/intro/btn_play.png';
 
-    // play 버튼 크기(반응형)
+    // ENTER 버튼 크기(반응형)
+    let enterBtnWidth;
+    if (!isMobile) {
+        enterBtnWidth = '540px';
+    } else if (orientation === 'landscape') {
+        enterBtnWidth = '540px';
+    } else {
+        enterBtnWidth = '220px';
+    }
+
+    // play 버튼 크기(enter 버튼보다 70%로 더 작게)
     let playBtnSize;
     if (!isMobile) {
-        playBtnSize = 'min(45vw, 540px)'; // 데스크탑
+        playBtnSize = '378px'; // 540 * 0.7
     } else if (orientation === 'landscape') {
-        playBtnSize = 'min(18vw, 48px)'; // 모바일 가로(더 작게)
+        playBtnSize = '378px';
     } else {
-        playBtnSize = 'min(40vw, 140px)'; // 모바일 세로
+        playBtnSize = '154px'; // 220 * 0.7
     }
 
     // play 버튼 클릭 시
@@ -70,6 +80,7 @@ const IntroScreen = ({ onComplete }) => {
     // isPlaying이 true가 되면 video play 시도
     useEffect(() => {
         if (isPlaying && videoRef.current) {
+            videoRef.current.volume = 0.6;
             videoRef.current.muted = false;
             videoRef.current.playsInline = true;
             videoRef.current.play().then(() => {
@@ -118,7 +129,7 @@ const IntroScreen = ({ onComplete }) => {
     // play 버튼 스타일
     const playBtnStyle = {
         position: 'absolute',
-        top: '50%',
+        top: '45%',
         left: '50%',
         width: playBtnSize,
         height: playBtnSize,
@@ -157,16 +168,6 @@ const IntroScreen = ({ onComplete }) => {
         skipBtnHeight = 107;
         skipBtnRight = -106;
         skipBtnBottom = -27;
-    }
-
-    // ENTER 버튼 크기(반응형)
-    let enterBtnWidth;
-    if (!isMobile) {
-        enterBtnWidth = '540px';
-    } else if (orientation === 'landscape') {
-        enterBtnWidth = '540px';
-    } else {
-        enterBtnWidth = '220px';
     }
 
     // ENTER 버튼 위치(반응형)

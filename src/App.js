@@ -38,11 +38,11 @@ function App() {
     if (!audioRef.current) {
       audioRef.current = new Audio('https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media/x.waybackhome.mp4');
       audioRef.current.loop = true;
-      audioRef.current.volume = 0.5;
+      audioRef.current.volume = 0.6;
     }
     if (isMusicOn && !selectedButton) {
       audioRef.current.play().catch(() => {});
-      fadeVolume(0.5, 800); // 페이드인
+      fadeVolume(0.6, 800); // 페이드인
     } else {
       fadeVolume(0, 800); // 페이드아웃
       setTimeout(() => {
@@ -81,7 +81,7 @@ function App() {
   useEffect(() => {
     if (!showIntro && isMusicOn && audioRef.current) {
       audioRef.current.play().catch(() => {});
-      fadeVolume(0.5, 800); // 인트로 끝나고도 페이드인
+      fadeVolume(0.6, 800); // 인트로 끝나고도 페이드인
     }
   }, [showIntro, isMusicOn]);
 
