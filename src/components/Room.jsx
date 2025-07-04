@@ -184,6 +184,36 @@ const wallTexturePaths = {
 //   }), [texture]);
 // }
 
+// Radial gradient texture 생성 함수
+function useRadialGlowTexture(size = 256, color = '#ffe066') {
+  return useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    const r = size / 2;
+    const gradient = ctx.createRadialGradient(r, r, 0, r, r, r);
+    gradient.addColorStop(0, color);
+    gradient.addColorStop(0.7, color + '80'); // 중간은 반투명
+    gradient.addColorStop(1, 'rgba(255,224,102,0)'); // 바깥은 완전 투명
+    ctx.clearRect(0, 0, size, size);
+    ctx.beginPath();
+    ctx.arc(r, r, r, 0, 2 * Math.PI);
+    ctx.closePath();
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    const texture = new THREE.Texture(canvas);
+    texture.needsUpdate = true;
+    return texture;
+  }, [size, color]);
+}
+
+// 조명 효과음 재생 함수
+function playLampSound() {
+  const audio = new window.Audio('/sounds/light-switch.mp3');
+  audio.volume = 0.5;
+  audio.play();
+}
+
 // Button 컴포넌트 수정
 const Button = React.memo(function Button({ 
   type, 
@@ -204,13 +234,17 @@ const Button = React.memo(function Button({
   polygonOffsetFactor,
   polygonOffsetUnits,
   setIsLampOverlay,
-  handleButtonClick
+  handleButtonClick,
+  isLampOverlay = false
 }) {
   const isHovered = hoveredObject === buttonKey;
   const [size, texture, image, canvas, ready] = useButtonImageData(isHovered ? hoverSrc : src, wallType);
   const meshRef = useRef();
   const clickStart = useRef(null);
   
+  // 노란 Glow radial gradient 텍스처
+  const glowTexture = useRadialGlowTexture(256, '#ffe066');
+
   const handlePointerDown = useCallback((e) => {
     // 클릭 시작 위치 저장
     clickStart.current = { x: e.clientX, y: e.clientY };
@@ -233,6 +267,7 @@ const Button = React.memo(function Button({
         e.stopPropagation();
         // 램프(조명) 아이콘은 카메라 확대/팝업 없이 오버레이만 토글
         if (buttonKey === 'btn_c_lamp') {
+          playLampSound();
           setIsLampOverlay(v => !v);
           setHoveredObject(null);
           clickStart.current = null;
@@ -286,35 +321,49 @@ const Button = React.memo(function Button({
   if (!ready) return null;
 
   return (
-    <mesh
-      ref={meshRef}
-      position={position}
-      rotation={[0, 0, 0]}
-      renderOrder={10}
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerMove={handlePointerMove}
-      onPointerOut={handlePointerOut}
-      visible={forceVisible}
-    >
-      <planeGeometry args={size} />
-      <meshStandardMaterial
-        map={texture}
-        transparent={true}
-        opacity={1}
-        alphaTest={0.1}
-        depthTest={true}
-        depthWrite={false}
-        side={THREE.DoubleSide}
-        ref={ref => {
-          if (!ref) return;
-          console.log(`[${wallType}_btn_${btnIdx}] material 연결됨`, ref, 'map:', ref.map, 'visible:', ref.visible);
-        }}
-        polygonOffset={polygonOffset}
-        polygonOffsetFactor={polygonOffsetFactor}
-        polygonOffsetUnits={polygonOffsetUnits}
-      />
-    </mesh>
+    <group position={position}>
+      {/* 램프아이콘 뒤 Glow 원 (radial gradient) */}
+      {buttonKey === 'btn_c_lamp' && !isLampOverlay && (
+        <mesh position={[0, 9.6, -0.01]}>
+          <planeGeometry args={[size[0] * 0.2, size[0] * 0.2]} />
+          <meshStandardMaterial 
+            map={glowTexture}
+            transparent={true}
+            opacity={1}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
+      <mesh
+        ref={meshRef}
+        position={[0, 0, 0]}
+        rotation={[0, 0, 0]}
+        renderOrder={10}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerMove={handlePointerMove}
+        onPointerOut={handlePointerOut}
+        visible={forceVisible}
+      >
+        <planeGeometry args={size} />
+        <meshStandardMaterial
+          map={texture}
+          transparent={true}
+          opacity={1}
+          alphaTest={0.1}
+          depthTest={true}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+          ref={ref => {
+            if (!ref) return;
+            console.log(`[${wallType}_btn_${btnIdx}] material 연결됨`, ref, 'map:', ref.map, 'visible:', ref.visible);
+          }}
+          polygonOffset={polygonOffset}
+          polygonOffsetFactor={polygonOffsetFactor}
+          polygonOffsetUnits={polygonOffsetUnits}
+        />
+      </mesh>
+    </group>
   );
 });
 
@@ -368,7 +417,8 @@ const Room = ({
   setSelectedButton,
   animateCamera,
   setIsLampOverlay,
-  handleButtonClick
+  handleButtonClick,
+  isLampOverlay
 }) => {
   // useLoader로 벽 텍스처 로딩
   const frontTex = useLoader(THREE.TextureLoader, wallTexturePaths.front);
@@ -688,6 +738,7 @@ const Room = ({
                     polygonOffsetUnits={-2}
                     setIsLampOverlay={setIsLampOverlay}
                     handleButtonClick={handleButtonClick}
+                    isLampOverlay={isLampOverlay}
                   />
                 );
               })}
@@ -739,6 +790,7 @@ const Room = ({
                   polygonOffsetUnits={-2}
                   setIsLampOverlay={setIsLampOverlay}
                   handleButtonClick={handleButtonClick}
+                  isLampOverlay={isLampOverlay}
                 />
               );
             })}
@@ -789,6 +841,7 @@ const Room = ({
                   polygonOffsetUnits={-2}
                   setIsLampOverlay={setIsLampOverlay}
                   handleButtonClick={handleButtonClick}
+                  isLampOverlay={isLampOverlay}
                 />
               );
             })}
@@ -1016,6 +1069,7 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
               animateCamera={animateCamera}
               setIsLampOverlay={setIsLampOverlay}
               handleButtonClick={handleButtonClick}
+              isLampOverlay={isLampOverlay}
             />
           </Suspense>
           {hoveredObject && buttonRef.current && buttonRef.current.getObjectByName(hoveredObject) && (
