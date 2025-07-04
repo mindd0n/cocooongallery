@@ -207,31 +207,43 @@ const Button = React.memo(function Button({
   const isHovered = hoveredObject === buttonKey;
   const [size, texture, image, canvas, ready] = useButtonImageData(isHovered ? hoverSrc : src, wallType);
   const meshRef = useRef();
+  const clickStart = useRef(null);
   
-  const handleDoubleClick = useCallback((e) => {
-    // 모든 벽면 버튼 더블클릭 시 로그
-    console.log(`벽면 버튼 더블클릭: ${buttonKey}`);
-    if (!image || !texture || !canvas) return;
-    const uv = e.uv;
-    if (!uv) return;
-    const x = Math.floor(uv.x * image.naturalWidth);
-    const y = Math.floor((1 - uv.y) * image.naturalHeight);
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    const alpha = ctx.getImageData(x, y, 1, 1).data[3] / 255;
-    if (alpha > 0.05) {
-      e.stopPropagation();
-      const zoomTarget = getZoomTargetForButton(position, wallType);
-      animateCamera(
-        {
-          position: zoomTarget.position,
-          target: zoomTarget.target,
-          fov: 45
-        },
-        1.5,
-        () => setSelectedButton(buttonKey)
-      );
-      setHoveredObject(null);
+  const handlePointerDown = useCallback((e) => {
+    // 클릭 시작 위치 저장
+    clickStart.current = { x: e.clientX, y: e.clientY };
+  }, []);
+
+  const handlePointerUp = useCallback((e) => {
+    if (!clickStart.current) return;
+    const dx = e.clientX - clickStart.current.x;
+    const dy = e.clientY - clickStart.current.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 5) { // 5px 이하 이동만 클릭으로 인정
+      // 기존 handleDoubleClick 로직 복사
+      if (!image || !texture || !canvas) return;
+      const uv = e.uv;
+      if (!uv) return;
+      const x = Math.floor(uv.x * image.naturalWidth);
+      const y = Math.floor((1 - uv.y) * image.naturalHeight);
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const alpha = ctx.getImageData(x, y, 1, 1).data[3] / 255;
+      if (alpha > 0.05) {
+        e.stopPropagation();
+        const zoomTarget = getZoomTargetForButton(position, wallType);
+        animateCamera(
+          {
+            position: zoomTarget.position,
+            target: zoomTarget.target,
+            fov: 45
+          },
+          1.5,
+          () => setSelectedButton(buttonKey)
+        );
+        setHoveredObject(null);
+      }
     }
+    clickStart.current = null;
   }, [position, image, texture, canvas, buttonKey, wallType, animateCamera, setHoveredObject, setSelectedButton]);
 
   const handlePointerMove = useCallback((e) => {
@@ -264,7 +276,8 @@ const Button = React.memo(function Button({
       position={position}
       rotation={[0, 0, 0]}
       renderOrder={10}
-      onDoubleClick={handleDoubleClick}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
       onPointerMove={handlePointerMove}
       onPointerOut={handlePointerOut}
       visible={forceVisible}
