@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import './PavilionContent.css';
 // 다른 SVG 컴포넌트 import
 // import ForrestGump from './svg/ForrestGump';
@@ -18,6 +18,7 @@ const movies = [
 
 const PavilionContent = ({ onClose, noImageStyle }) => {
   const [selectedMovie, setSelectedMovie] = useState(null);
+  const clickStart = useRef({});
 
   const handlePosterClick = (movie) => {
     setSelectedMovie(movie);
@@ -88,7 +89,21 @@ const PavilionContent = ({ onClose, noImageStyle }) => {
       >
         <div className="poster-list">
           {movies.map((movie) => (
-            <button key={movie.name} className="poster-button" onDoubleClick={() => handlePosterClick(movie)}>
+            <button
+              key={movie.name}
+              className="poster-button"
+              onPointerDown={e => { clickStart.current[movie.name] = { x: e.clientX, y: e.clientY }; }}
+              onPointerUp={e => {
+                const start = clickStart.current[movie.name];
+                if (!start) return;
+                const dx = e.clientX - start.x;
+                const dy = e.clientY - start.y;
+                if (Math.sqrt(dx*dx + dy*dy) < 5) {
+                  handlePosterClick(movie);
+                }
+                clickStart.current[movie.name] = null;
+              }}
+            >
               <img src={`${BASE_PATH}${movie.poster}`} alt={movie.name} />
             </button>
           ))}

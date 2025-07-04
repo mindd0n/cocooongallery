@@ -8,6 +8,9 @@ const RightBottomControls = ({ isMusicOn, setIsMusicOn, audioRef }) => {
     const [showMap, setShowMap] = useState(false);
     const [showRestPopup, setShowRestPopup] = useState(false);
 
+    // 클릭 위치 저장용 ref
+    const clickStart = useRef({});
+
     useEffect(() => {
         const imageInfos = {
             'out_button': `${S3_BASE_URL}/icon_out.png`,
@@ -68,6 +71,51 @@ const RightBottomControls = ({ isMusicOn, setIsMusicOn, audioRef }) => {
         return false;
     };
 
+    // 음악 버튼 클릭
+    const handleMusicPointerDown = (e) => {
+        clickStart.current.music = { x: e.clientX, y: e.clientY };
+    };
+    const handleMusicPointerUp = (e) => {
+        const start = clickStart.current.music;
+        if (!start) return;
+        const dx = e.clientX - start.x;
+        const dy = e.clientY - start.y;
+        if (Math.sqrt(dx*dx + dy*dy) < 5) {
+            toggleMusic();
+        }
+        clickStart.current.music = null;
+    };
+
+    // 지도 버튼 클릭
+    const handleMapPointerDown = (e) => {
+        clickStart.current.map = { x: e.clientX, y: e.clientY };
+    };
+    const handleMapPointerUp = (e) => {
+        const start = clickStart.current.map;
+        if (!start) return;
+        const dx = e.clientX - start.x;
+        const dy = e.clientY - start.y;
+        if (Math.sqrt(dx*dx + dy*dy) < 5) {
+            toggleMap(e);
+        }
+        clickStart.current.map = null;
+    };
+
+    // 나가기 버튼 클릭
+    const handleExitPointerDown = (e) => {
+        clickStart.current.exit = { x: e.clientX, y: e.clientY };
+    };
+    const handleExitPointerUp = (e) => {
+        const start = clickStart.current.exit;
+        if (!start) return;
+        const dx = e.clientX - start.x;
+        const dy = e.clientY - start.y;
+        if (Math.sqrt(dx*dx + dy*dy) < 5) {
+            handleExit();
+        }
+        clickStart.current.exit = null;
+    };
+
     return (
         <>
             <div className="controls-container">
@@ -76,7 +124,8 @@ const RightBottomControls = ({ isMusicOn, setIsMusicOn, audioRef }) => {
                         className="out-button-img"
                         src={`${S3_BASE_URL}/icon_out.png`}
                         alt="Exit"
-                        onDoubleClick={handleExit}
+                        onPointerDown={handleExitPointerDown}
+                        onPointerUp={handleExitPointerUp}
                         onMouseEnter={(e) => e.currentTarget.src = `${S3_BASE_URL}/icon_out_hover.png`}
                         onMouseLeave={(e) => e.currentTarget.src = `${S3_BASE_URL}/icon_out.png`}
                     />
@@ -88,15 +137,18 @@ const RightBottomControls = ({ isMusicOn, setIsMusicOn, audioRef }) => {
                         className="map-button-img"
                         src={`${S3_BASE_URL}/icon_map.png`}
                         alt="Map"
-                        onDoubleClick={toggleMap}
+                        onPointerDown={handleMapPointerDown}
+                        onPointerUp={handleMapPointerUp}
                     />
                 </button>
 
-                <button className="base-button music-button" onDoubleClick={toggleMusic}>
+                <button className="base-button music-button">
                     <img
                         className="music-button-img"
                         src={isMusicOn ? `${S3_BASE_URL}/music-on.png` : `${S3_BASE_URL}/music-off.png`}
                         alt="Music Toggle"
+                        onPointerDown={handleMusicPointerDown}
+                        onPointerUp={handleMusicPointerUp}
                     />
                 </button>
             </div>
