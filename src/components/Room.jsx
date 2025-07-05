@@ -998,9 +998,10 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
   // 컴포넌트 언마운트 시 타임아웃 정리
   React.useEffect(() => {
     return () => { 
-      if (phoneEffectTimeouts.current) {
-        phoneEffectTimeouts.current.forEach(clearTimeout);
-        phoneEffectTimeouts.current.length = 0;
+      const timeoutsRef = phoneEffectTimeouts.current;
+      if (timeoutsRef && Array.isArray(timeoutsRef)) {
+        timeoutsRef.forEach(clearTimeout);
+        timeoutsRef.length = 0;
       }
     };
   }, []);
