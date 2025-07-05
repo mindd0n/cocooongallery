@@ -24,11 +24,14 @@ function App() {
     function animate(now) {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      audio.volume = start + change * progress;
+      const newVolume = start + change * progress;
+      // 볼륨을 0과 1 사이로 제한
+      audio.volume = Math.max(0, Math.min(1, newVolume));
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
-        audio.volume = targetVolume;
+        // 최종 볼륨도 제한
+        audio.volume = Math.max(0, Math.min(1, targetVolume));
       }
     }
     requestAnimationFrame(animate);
