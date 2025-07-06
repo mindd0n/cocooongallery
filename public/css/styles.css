@@ -71,8 +71,8 @@ body {
 
 /* 버튼 이미지 크기 */
 .btn-play img {
-    width: auto;
-    height: 350px;
+    width: 100px;
+    height: 100px;
 }
 
 .btn-enter img {
@@ -116,8 +116,8 @@ body {
     display: none;
 }
 
-/* 모바일 버전 */
-@media (max-width: 768px) {
+/* 모바일 세로 버전 */
+@media (max-width: 768px) and (orientation: portrait) {
     .pc-only {
         display: none;
     }
@@ -143,6 +143,37 @@ body {
     
     .skip-button img {
         width: 80px;
+        height: auto;
+    }
+}
+
+/* 모바일 가로 버전 */
+@media (max-width: 768px) and (orientation: landscape) {
+    .pc-only {
+        display: none;
+    }
+    
+    .mobile-only {
+        display: block;
+    }
+    
+    .btn-play img {
+        width: 100px !important;
+        height: 100px !important;
+    }
+    
+    .btn-enter img {
+        width: 160px;
+        height: 60px;
+    }
+
+    .skip-button {
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .skip-button img {
+        width: 60px;
         height: auto;
     }
 }

@@ -62,12 +62,12 @@ const IntroScreen = ({ onComplete }) => {
 
     // play 버튼 크기(enter 버튼보다 더 작게)
     let playBtnSize;
-    if (!isMobile) {
-        playBtnSize = '288px'; // 기존 240px → 20% 증가
-    } else if (orientation === 'landscape') {
-        playBtnSize = '288px';
+    if (window.innerWidth <= 768 && orientation === 'landscape') {
+        playBtnSize = '150px';
+    } else if (window.innerWidth <= 768 && orientation === 'portrait') {
+        playBtnSize = '116px';
     } else {
-        playBtnSize = '116px'; // 기존 96px → 20% 증가
+        playBtnSize = '288px';
     }
 
     // play 버튼 클릭 시

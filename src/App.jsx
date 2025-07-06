@@ -3,6 +3,7 @@ import RoomScene from './components/Room';
 import IntroScreen from './components/IntroScreen.jsx';
 import LoadingScreen from './components/LoadingScreen';
 import RightBottomControls from './components/RightBottomControls';
+import OrientationGuide from './components/OrientationGuide';
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);
@@ -11,6 +12,7 @@ function App() {
   const [isMusicOn, setIsMusicOn] = useState(true);
   const audioRef = useRef(null);
   const [selectedButton, setSelectedButton] = useState(null);
+  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
 
   console.log('App 렌더링:', { showIntro, showLoading, loadingProgress });
 
@@ -97,6 +99,19 @@ function App() {
     setLoadingProgress(progress);
   };
 
+  useEffect(() => {
+    function checkOrientation() {
+      setIsMobileLandscape(window.innerWidth > window.innerHeight && window.innerWidth <= 1024);
+    }
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
+
   if (showIntro) {
     console.log('IntroScreen 렌더링 중...');
     return <IntroScreen onComplete={handleIntroComplete} />;
@@ -109,24 +124,35 @@ function App() {
 
   console.log('RoomScene 렌더링 중...');
   return (
-    <div style={{
-      width: '100vw',
-      height: '100vh',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      <RoomScene 
-        onLoadingProgress={handleLoadingProgress}
-        onLoadingComplete={handleLoadingComplete}
-        selectedButton={selectedButton}
-        setSelectedButton={setSelectedButton}
-      />
-      <RightBottomControls 
-        isMusicOn={isMusicOn}
-        setIsMusicOn={setIsMusicOn}
-        audioRef={audioRef}
-      />
-    </div>
+    <>
+      <OrientationGuide />
+      <div
+        style={isMobileLandscape ? {
+          minHeight: '200vh',
+          height: 'auto',
+          width: '100vw',
+          position: 'relative',
+          overflow: 'visible',
+        } : {
+          width: '100vw',
+          height: '100vh',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <RoomScene 
+          onLoadingProgress={handleLoadingProgress}
+          onLoadingComplete={handleLoadingComplete}
+          selectedButton={selectedButton}
+          setSelectedButton={setSelectedButton}
+        />
+        <RightBottomControls 
+          isMusicOn={isMusicOn}
+          setIsMusicOn={setIsMusicOn}
+          audioRef={audioRef}
+        />
+      </div>
+    </>
   );
 }
 
