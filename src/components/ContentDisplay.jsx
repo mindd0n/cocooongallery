@@ -1321,7 +1321,8 @@ const ContentDisplay = ({ buttonId, onClose }) => {
                 />
               );
             } else if (buttonId === 'btn_c_heart') {
-              return <img src={iframeSrc} alt="하트" style={{ width: '100vw', height: '100vh', objectFit: 'contain', display: 'block', marginTop: '6vh' }} />;
+              // image 타입은 ContentMap에서 직접 src를 받아야 함
+              return <img src={ContentMap[buttonId].src} alt="하트" style={{ width: '100vw', height: '100vh', objectFit: 'contain', display: 'block', marginTop: '6vh' }} />;
             } else {
               return <GenericContent type={contentInfo.type} src={iframeSrc} onClose={onClose} buttonId={buttonId} />;
             }
