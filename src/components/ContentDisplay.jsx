@@ -420,6 +420,24 @@ const ContentDisplay = ({ buttonId, onClose }) => {
     e.stopPropagation();
   };
 
+  // 팝업/iframe src 상태 관리
+  const [iframeSrc, setIframeSrc] = useState(null);
+
+  useEffect(() => {
+    // 팝업이 열릴 때만 src 할당, 닫힐 때는 해제
+    if (buttonId && ContentMap[buttonId] && ContentMap[buttonId].type === 'iframe') {
+      setIframeSrc(ContentMap[buttonId].src);
+    } else {
+      setIframeSrc(null);
+    }
+  }, [buttonId]);
+
+  // 팝업 닫기 시 src 해제
+  const handleClose = () => {
+    setIframeSrc(null);
+    if (onClose) onClose();
+  };
+
   if (!show || !contentInfo) {
     console.log('ContentDisplay not showing:', { show, contentInfo });
     return null;
@@ -721,7 +739,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
           onClick={e => e.stopPropagation()}
         >
           <iframe
-            src={ContentMap[buttonId].src}
+            src={iframeSrc}
             style={{ width: '100%', height: '100%', border: 'none', background: 'white', display: 'block' }}
             title="b_home"
             allowFullScreen
@@ -1037,7 +1055,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
           onClick={e => e.stopPropagation()}
         >
           <iframe
-            src={ContentMap[buttonId].src}
+            src={iframeSrc}
             style={{ width: '100%', height: '100%', border: 'none', background: 'white', display: 'block' }}
             title={buttonId}
           />
@@ -1088,7 +1106,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
             {'< 돌아가기'}
           </div>
           <iframe
-            src={ContentMap[buttonId].src}
+            src={iframeSrc}
             style={{
               width: '100vw',
               height: '100vh',
@@ -1152,7 +1170,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
             } else if (buttonId === 'btn_p_note') {
               return (
                 <div
-                  style={{
+                    style={{
                     position: 'fixed',
                     top: 0,
                     left: 0,
@@ -1171,26 +1189,25 @@ const ContentDisplay = ({ buttonId, onClose }) => {
                     onClick={e => e.stopPropagation()}
                   >
                     <iframe
-                      src={ContentMap[buttonId].src}
+                      src={iframeSrc}
                       style={{ width: '100%', height: '100%', border: 'none', background: 'white', display: 'block' }}
                       title={buttonId}
-                    />
+                  />
                   </div>
                 </div>
               );
             } else if (buttonId === 'btn_h_dog') {
               // 강아지 버튼은 iframe으로 연결
-              console.log('btn_h_dog iframe src:', ContentMap[buttonId].src);
+              console.log('btn_h_dog iframe src:', iframeSrc);
               return (
                 <iframe
-                  src={ContentMap[buttonId].src}
+                  src={iframeSrc}
                   style={{ width: '100%', height: '100%', border: 'none', background: 'black' }}
                   title="hoya-story"
-                  allowFullScreen
                   allow="autoplay; fullscreen; microphone; camera"
                   sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
                   onLoad={() => console.log('btn_h_dog iframe loaded successfully')}
-                  onError={(e) => console.error('btn_h_dog iframe error:', e)}
+                  onError={e => { alert('팝업 로드에 실패했습니다.'); handleClose(); }}
                 />
               );
             } else if (buttonId === 'btn_f_phone') {
@@ -1245,11 +1262,11 @@ const ContentDisplay = ({ buttonId, onClose }) => {
                         justifyContent: 'center',
                         zIndex: 3001
                       }}>
-                        <iframe
-                          src={ContentMap[buttonId].src}
+                  <iframe
+                    src={iframeSrc}
                           style={{ width: '100%', height: '100%', border: 'none', background: 'white', display: 'block' }}
-                          title={buttonId}
-                        />
+                    title={buttonId}
+                  />
                       </div>
                     );
                   })()}
@@ -1259,7 +1276,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               // 리본(R.mp4) 영상: 팝업창의 63% 크기, 영상 약간 아래로(marginTop)
               return (
                 <video
-                  src={ContentMap[buttonId].src}
+                  src={iframeSrc}
                   style={{ width: '63vw', height: '63vh', maxWidth: '63vw', maxHeight: '63vh', objectFit: 'contain', display: 'block', background: 'none', borderRadius: 8, marginTop: '4vh' }}
                   loop
                   playsInline
@@ -1271,7 +1288,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               // 다리 아이콘: 영상 위치를 조금 더 아래로(marginTop: 8vh)
               return (
                 <video
-                  src={ContentMap[buttonId].src}
+                  src={iframeSrc}
                   style={{ width: '55vw', height: '55vh', maxWidth: '55vw', maxHeight: '55vh', objectFit: 'contain', display: 'block', background: 'none', borderRadius: 8, marginTop: '8vh' }}
                   loop
                   playsInline
@@ -1283,7 +1300,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               // 산책, 표지판 아이콘: 다리 아이콘과 동일한 영상 스타일 적용
               return (
                 <video
-                  src={ContentMap[buttonId].src}
+                  src={iframeSrc}
                   style={{ width: '55vw', height: '55vh', maxWidth: '55vw', maxHeight: '55vh', objectFit: 'contain', display: 'block', background: 'none', borderRadius: 8, marginTop: '8vh' }}
                   loop
                   playsInline
@@ -1295,7 +1312,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               // 버스, 버스정류장 아이콘: 다리/산책/표지판과 동일한 영상 스타일 적용
               return (
                 <video
-                  src={ContentMap[buttonId].src}
+                  src={iframeSrc}
                   style={{ width: '55vw', height: '55vh', maxWidth: '55vw', maxHeight: '55vh', objectFit: 'contain', display: 'block', background: 'none', borderRadius: 8, marginTop: '8vh' }}
                   loop
                   playsInline
@@ -1304,9 +1321,9 @@ const ContentDisplay = ({ buttonId, onClose }) => {
                 />
               );
             } else if (buttonId === 'btn_c_heart') {
-              return <img src={ContentMap[buttonId].src} alt="하트" style={{ width: '100vw', height: '100vh', objectFit: 'contain', display: 'block', marginTop: '6vh' }} />;
+              return <img src={iframeSrc} alt="하트" style={{ width: '100vw', height: '100vh', objectFit: 'contain', display: 'block', marginTop: '6vh' }} />;
             } else {
-              return <GenericContent type={contentInfo.type} src={contentInfo.src} onClose={onClose} buttonId={buttonId} />;
+              return <GenericContent type={contentInfo.type} src={iframeSrc} onClose={onClose} buttonId={buttonId} />;
             }
           })()}
         </div>
