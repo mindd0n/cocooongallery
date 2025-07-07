@@ -1,12 +1,6 @@
 {
-<<<<<<< HEAD
   "title": "외부 링크",
   "type": "external",
   "src": "/assets/deploy_media/sun_image.jpg"
-} 
-=======
-  "title": "태양",
-  "type": "image",
-  "src": "sun_image.jpg",
- 
->>>>>>> 4c4e400cdeaaca18dec27ae52edf63b13a05f13f
+}
+

@@ -44,6 +44,7 @@ export default function DiaryModal({ onClose }) {
   );
 }
 
+const isMobileLandscape = typeof window !== 'undefined' && window.innerWidth <= 1024 && window.innerWidth > window.innerHeight;
 const styles = {
   overlay: {
     position: 'fixed',
@@ -79,8 +80,8 @@ const styles = {
     padding: 0,
   },
   image: {
-    maxWidth: '100%',
-    maxHeight: '100%',
+    maxWidth: isMobileLandscape ? '80%' : '100%',
+    maxHeight: isMobileLandscape ? '80%' : '100%',
     objectFit: 'contain',
     margin: 0,          // ✅ 이미지 간격도 없애기
     padding: 0,

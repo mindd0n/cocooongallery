@@ -51,6 +51,12 @@ const ContentMap = {
 };
 
 const TreeContent = () => {
+  // 모바일 가로(landscape) 감지
+  const isMobileLandscape = typeof window !== 'undefined' && window.innerWidth <= 1024 && window.innerWidth > window.innerHeight;
+  // marginTop을 모바일 가로에서만 -32px로, 그 외는 0
+  const topMargin = isMobileLandscape ? '12px' : '0';
+  // 모바일 가로에서만 크기 축소 비율
+  const scale = isMobileLandscape ? 0.95 : 1;
   return (
     <div style={{ 
       width: '100%', 
@@ -61,20 +67,21 @@ const TreeContent = () => {
       background: 'transparent',
       maxHeight: '100%',
       justifyContent: 'flex-start',
+      marginTop: topMargin
     }}>
       <div style={{ 
         flex: '0 0 auto', 
         minHeight: 0, 
-        width: '100%',
+        width: `${scale * 100}%`,
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: '0',
         marginBottom: '9px',
-        paddingTop: '32px',
+        paddingTop: isMobileLandscape ? '20px' : '32px'
       }}>
         <div style={{
-          width: 'min(700px, 90vw)',
+          width: isMobileLandscape ? 'min(665px, 86vw)' : 'min(700px, 90vw)',
           aspectRatio: '16/9',
           display: 'flex',
           alignItems: 'center',
@@ -82,10 +89,10 @@ const TreeContent = () => {
           background: 'black',
           borderRadius: '8px',
           overflow: 'hidden',
-          maxWidth: '100%',
-          maxHeight: '60vh',
-          paddingTop: '32px',
-          marginTop: '24px',
+          maxWidth: isMobileLandscape ? '95%' : '100%',
+          maxHeight: isMobileLandscape ? '57vh' : '60vh',
+          paddingTop: isMobileLandscape ? '16px' : '32px',
+          marginTop: isMobileLandscape ? '12px' : '24px'
         }}>
           <GenericContent 
             type='video' 
@@ -99,12 +106,12 @@ const TreeContent = () => {
         flexDirection: 'row', 
         gap: '1px', 
         minHeight: 0, 
-        marginBottom: 52,
-        width: 'min(700px, 90vw)',
-        maxWidth: '100%',
-        maxHeight: '30vh',
+        marginBottom: isMobileLandscape ? 32 : 52,
+        width: isMobileLandscape ? 'min(665px, 86vw)' : 'min(700px, 90vw)',
+        maxWidth: isMobileLandscape ? '95%' : '100%',
+        maxHeight: isMobileLandscape ? '28.5vh' : '30vh',
         overflow: 'hidden',
-        paddingTop: '0',
+        paddingTop: '0'
       }}>
         <div style={{ flex: 2, minHeight: 0 }}>
           <GenericContent 
@@ -195,6 +202,11 @@ const StarContent = () => {
 };
 
 const SunContent = () => {
+  // 모바일 가로(landscape) 감지
+  const isMobileLandscape = typeof window !== 'undefined' && window.innerWidth <= 1024 && window.innerWidth > window.innerHeight;
+  const playlistWidth = 400;
+  const playlistHeight = isMobileLandscape ? 150 : 152;
+  const playlistBottom = isMobileLandscape ? '-70px' : '40px';
   return (
     <div style={{ 
       width: '100%', 
@@ -218,22 +230,21 @@ const SunContent = () => {
           left: '-10%'
         }}
       />
-      
       {/* Spotify 플레이리스트 - 위치 조정: bottom/right 값 변경 */}
       <div 
         className="sun-playlist-container"
         style={{
           position: 'absolute',
-          bottom: '40px',
-          right: '-40px',
+          bottom: playlistBottom,
+          right: isMobileLandscape ? '-35px' : '-80px',
           zIndex: 10,
-          width: '300px',
-          height: '152px'
+          width: `${playlistWidth}px`,
+          height: `${playlistHeight}px`
         }}
       >
         <iframe 
           className="sun-playlist-iframe"
-          style={{borderRadius: '12px', width: '300px', height: '152px'}} 
+          style={{borderRadius: '12px', width: `${playlistWidth}px`, height: `${playlistHeight}px`}} 
           src="https://open.spotify.com/embed/playlist/5jngExT7M9drt4yVZvrzQu?utm_source=generator" 
           width="100%" 
           height="100%" 
@@ -244,32 +255,6 @@ const SunContent = () => {
           title="Spotify Playlist"
         />
       </div>
-      
-      <style jsx>{`
-        .sun-main-image {
-          width: 120%;
-          height: 120%;
-          object-fit: contain;
-          position: absolute;
-          top: -40px;
-          left: -10%;
-        }
-        
-        .sun-playlist-container {
-          position: absolute;
-          bottom: 40px;
-          right: -40px;
-          zIndex: 10;
-          width: 300px;
-          height: 152px;
-        }
-        
-        .sun-playlist-iframe {
-          border-radius: 12px;
-          width: 300px;
-          height: 152px;
-        }
-      `}</style>
     </div>
   );
 };
@@ -1116,17 +1101,22 @@ const ContentDisplay = ({ buttonId, onClose }) => {
             } else if (buttonId === 'btn_w_sun') {
               return <SunContent />;
             } else if (buttonId === 'btn_p_note') {
+              // 모바일 가로(landscape) 감지
+              const isMobileLandscape = typeof window !== 'undefined' && window.innerWidth <= 1024 && window.innerWidth > window.innerHeight;
+              const iframeWidth = isMobileLandscape ? '80%' : '100%';
+              const iframeHeight = isMobileLandscape ? '80%' : '100%';
               return (
-                <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                <div style={{ width: '100%', height: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <iframe
                     src={ContentMap[buttonId].src}
                     style={{
-                      width: '100%',
-                      height: '100%',
+                      width: iframeWidth,
+                      height: iframeHeight,
                       border: 'none',
                       zIndex: 10,
                       position: 'relative',
-                      background: 'transparent'
+                      background: 'transparent',
+                      display: 'block',
                     }}
                     title="diary"
                   />
@@ -1182,18 +1172,31 @@ const ContentDisplay = ({ buttonId, onClose }) => {
                   >
                     〈 돌아가기
                   </button>
-                  <iframe
-                    src={ContentMap[buttonId].src}
-                    style={{
-                      width: '100vw',
-                      height: '100vh',
-                      border: 'none',
-                      background: 'white',
-                      zIndex: 3001,
-                      display: 'block',
-                    }}
-                    title={buttonId}
-                  />
+                  {/* 모바일 가로(landscape) 감지 */}
+                  {(() => {
+                    const isMobileLandscape = typeof window !== 'undefined' && window.innerWidth <= 1024 && window.innerWidth > window.innerHeight;
+                    const width = isMobileLandscape ? '60vw' : '80vw';
+                    const height = isMobileLandscape ? '40vh' : '60vh';
+                    return (
+                      <div style={{
+                        width,
+                        height,
+                        background: 'white',
+                        borderRadius: '16px',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 3001
+                      }}>
+                        <iframe
+                          src={ContentMap[buttonId].src}
+                          style={{ width: '100%', height: '100%', border: 'none', background: 'white', display: 'block' }}
+                          title={buttonId}
+                        />
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             } else if (buttonId === 'btn_h_ribbon') {

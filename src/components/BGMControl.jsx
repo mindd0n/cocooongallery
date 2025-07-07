@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // S3 기본 URL
 const S3_BASE_URL = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media';
 
-const BGMControl = () => {
+const BGMControl = ({ show }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
 
@@ -11,27 +11,30 @@ const BGMControl = () => {
     audioRef.current = new Audio(`${S3_BASE_URL}/x.waybackhome.mp4`);
     audioRef.current.loop = true;
     audioRef.current.volume = 0.5;
-    
-    // 방 진입 시 자동 재생 시도
-    const playAudio = async () => {
-      try {
-        await audioRef.current.play();
-        setIsPlaying(true);
-      } catch (e) {
-        console.error("자동 재생 실패:", e);
-        // 자동 재생이 실패해도 사용자가 버튼으로 재생 가능
+    if (show) {
+      // 방 진입 시 자동 재생 시도
+      const playAudio = async () => {
+        try {
+          await audioRef.current.play();
+          setIsPlaying(true);
+        } catch (e) {
+          console.error("자동 재생 실패:", e);
+        }
+      };
+      playAudio();
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        setIsPlaying(false);
       }
-    };
-    
-    playAudio();
-
+    }
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
     };
-  }, []);
+  }, [show]);
 
   // 버튼을 누르면 항상 음악이 꺼지고, 아이콘이 반대로 바뀌게
   const handleClick = () => {

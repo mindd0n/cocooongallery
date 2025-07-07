@@ -1122,9 +1122,9 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
           pointerEvents: 'none',
         }}>
           {/* 휴대폰 아이콘 */}
-          <img src="/content/btn_f_phone/V.디지털디톡스/phone-icon.png" alt="phone" style={{ position: 'absolute', top: phoneEffect.active ? '50%' : '80%', left: phoneEffect.active ? '50%' : '70%', width: phoneEffect.active ? 300 : 80, transform: 'translate(-50%, -50%) scale(' + (phoneEffect.active ? 2 : 1) + ')', transition: 'top 1s, left 1s, transform 1s', zIndex: 2 }} />
+          <img src="/content/btn_f_phone/V.디지털디톡스/phone-icon.png" alt="phone" style={{ position: 'absolute', top: phoneEffect.active ? '50%' : '80%', left: phoneEffect.active ? '50%' : '70%', width: phoneEffect.active ? (window.innerWidth <= 900 && window.innerWidth > window.innerHeight ? 210 : 300) : (window.innerWidth <= 900 && window.innerWidth > window.innerHeight ? 56 : 80), transform: 'translate(-50%, -50%) scale(' + (phoneEffect.active ? (window.innerWidth <= 900 && window.innerWidth > window.innerHeight ? 1.4 : 2) : (window.innerWidth <= 900 && window.innerWidth > window.innerHeight ? 0.7 : 1)) + ')', transition: 'top 1s, left 1s, transform 1s', zIndex: 2 }} />
           {/* StupidPhone */}
-          <img src="/content/btn_f_phone/V.디지털디톡스/stupid-phone.png" alt="stupid" style={{ position: 'absolute', top: '50%', left: '50%', width: 300, transform: 'translate(-50%, -50%) scale(2)', opacity: phoneEffect.showStupid ? 1 : 0, transition: 'opacity 1s', zIndex: 3 }} />
+          <img src="/content/btn_f_phone/V.디지털디톡스/stupid-phone.png" alt="stupid" style={{ position: 'absolute', top: '50%', left: '50%', width: window.innerWidth <= 900 && window.innerWidth > window.innerHeight ? 210 : 300, transform: 'translate(-50%, -50%) scale(' + (window.innerWidth <= 900 && window.innerWidth > window.innerHeight ? 1.4 : 2) + ')', opacity: phoneEffect.showStupid ? 1 : 0, transition: 'opacity 1s', zIndex: 3 }} />
           {/* Stay Away 텍스트 */}
           <img src="/content/btn_f_phone/V.디지털디톡스/Stay away.png" alt="stay away" style={{ position: 'absolute', top: '50%', left: '50%', width: '60vw', transform: 'translate(-50%, -50%)', opacity: phoneEffect.showText ? 1 : 0, transition: 'opacity 0.5s', zIndex: 4 }} />
           {/* 붉은 플래시 */}

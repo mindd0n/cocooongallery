@@ -45,7 +45,8 @@ function App() {
       audioRef.current.loop = true;
       audioRef.current.volume = 0.6;
     }
-    if (isMusicOn && !selectedButton) {
+    // 인트로가 끝나야만 음악 재생
+    if (!showIntro && isMusicOn && !selectedButton) {
       audioRef.current.play().catch(() => {});
       fadeVolume(0.6, 800); // 페이드인
     } else {
@@ -57,7 +58,7 @@ function App() {
     return () => {
       if (audioRef.current) audioRef.current.pause();
     };
-  }, [isMusicOn, selectedButton]);
+  }, [isMusicOn, selectedButton, showIntro]);
 
   useEffect(() => {
     const handlePointerDown = () => {
@@ -81,14 +82,6 @@ function App() {
     // setShowLoading(true);
     // setLoadingProgress(0);
   };
-
-  // 인트로 종료 후 음악 자동 재생
-  useEffect(() => {
-    if (!showIntro && isMusicOn && audioRef.current) {
-      audioRef.current.play().catch(() => {});
-      fadeVolume(0.6, 800); // 인트로 끝나고도 페이드인
-    }
-  }, [showIntro, isMusicOn]);
 
   const handleLoadingComplete = () => {
     console.log('텍스처 로딩 완료, 3D 룸으로 전환');
