@@ -717,7 +717,7 @@ const Room = ({
               </mesh>
               {/* 벽 중앙에 버튼 추가: 반드시 wallButtonData[wall.type] 배열 map만 사용! */}
               {Array.isArray(wallButtonData[wall.type]) && wallButtonData[wall.type].map((btn, idx) => {
-                let pos = [0, 0, 0.02];
+                let pos = [0, 0, (wall.type === 'left' && btn.key === 'btn_b_bus') ? 0.03 : 0.02];
                 return (
                   <Button
                     key={btn.key}

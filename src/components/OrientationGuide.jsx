@@ -85,27 +85,5 @@ export default function OrientationGuide() {
     );
   }
 
-  // 가로모드: Swipe Up 오버레이 (실제 스와이프 업 시 사라짐)
-  if (orientation === 'landscape' && showSwipeUp) {
-    return (
-      <div
-        style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-          background: 'rgba(0,0,0,0.92)', color: '#fff', zIndex: 99999,
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          fontSize: 28, fontWeight: 'bold', textAlign: 'center',
-          transition: 'opacity 0.4s',
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        {SWIPE_UP_ICON}
-        <div style={{marginTop: 24}}>Swipe Up</div>
-        <div style={{fontSize: 16, marginTop: 12, opacity: 0.7}}>더 넓은 전시 공간을 위해<br/>아래에서 위로 스와이프 해주세요</div>
-      </div>
-    );
-  }
-
   return null;
 } 
