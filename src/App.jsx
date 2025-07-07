@@ -46,8 +46,11 @@ function App() {
       audioRef.current.loop = true;
       audioRef.current.volume = 0.6;
     }
-    audioRef.current.play().catch(() => {});
-    fadeVolume(0.6, 800);
+    // 이미 재생 중이면 중복 재생하지 않음
+    if (audioRef.current.paused) {
+      audioRef.current.play().catch(() => {});
+      fadeVolume(0.6, 800);
+    }
   };
 
   // 음악 끄기/볼륨 페이드아웃만 관리 (자동재생 제거)
