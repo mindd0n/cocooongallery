@@ -775,8 +775,23 @@ const ContentDisplay = ({ buttonId, onClose }) => {
     // 팝업 반응형 크기 계산 함수
     function getSleepNewspaperPopupStyle(selectedHomeContent) {
       const isTablet = typeof window !== 'undefined' && window.innerWidth <= 1024;
+      const isMobileLandscape = typeof window !== 'undefined' && window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
       if (selectedHomeContent === 'icon_p') {
-        if (isTablet) {
+        if (isMobileLandscape) {
+          return {
+            width: '60vw',
+            height: 'auto',
+            aspectRatio: '1191/842', // 신문 이미지 비율
+            background: 'white',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            maxHeight: '100vh',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          };
+        } else if (isTablet) {
           return {
             width: 'min(98vw, 600px)',
             height: 'min(70vh, 500px)',

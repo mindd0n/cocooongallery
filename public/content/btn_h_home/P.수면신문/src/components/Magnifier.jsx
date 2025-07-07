@@ -3,9 +3,9 @@ import React, { useRef, useState, useEffect } from 'react';
 const Magnifier = ({ src, width = 1000, zoom = 2.5, lensSize = 180 }) => {
   const containerRef = useRef(null);
   const imgRef = useRef(null);
-  const [lensVisible, setLensVisible] = useState(false);
   const [lensPosition, setLensPosition] = useState({ x: 0, y: 0 });
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
+  const [showMagnifier, setShowMagnifier] = useState(false);
 
   useEffect(() => {
     const img = new Image();
@@ -19,32 +19,32 @@ const Magnifier = ({ src, width = 1000, zoom = 2.5, lensSize = 180 }) => {
     const container = containerRef.current;
     const image = imgRef.current;
     const rect = image.getBoundingClientRect();
-
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-
-    // 비율 계산
     const scaleX = naturalSize.width / rect.width;
     const scaleY = naturalSize.height / rect.height;
-
     setLensPosition({
       x: x * scaleX,
       y: y * scaleY,
       screenX: x,
       screenY: y,
     });
-
-    setLensVisible(true);
+    setShowMagnifier(true);
   };
 
   const handleMouseLeave = () => {
-    setLensVisible(false);
+    setShowMagnifier(false);
   };
 
   // 반응형: 태블릿에서 이미지/렌즈 크기 축소
   const isTablet = typeof window !== 'undefined' && window.innerWidth <= 1024;
   const responsiveWidth = isTablet ? 600 : width;
   const responsiveLensSize = isTablet ? 120 : lensSize;
+
+  // 커스텀 커서 스타일(돋보기)
+  const cursorStyle = {
+    cursor: 'none',
+  };
 
   return (
     <div
@@ -57,7 +57,8 @@ const Magnifier = ({ src, width = 1000, zoom = 2.5, lensSize = 180 }) => {
         padding: 0, 
         height: '100%', 
         width: '100%',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        ...cursorStyle
       }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -77,20 +78,20 @@ const Magnifier = ({ src, width = 1000, zoom = 2.5, lensSize = 180 }) => {
           objectFit: 'contain'
         }}
       />
-
-      {lensVisible && (
+      {showMagnifier && (
         <div
           style={{
-            position: 'absolute',
+            position: 'fixed',
+            pointerEvents: 'none',
+            left: `${lensPosition.screenX + window.scrollX - responsiveLensSize / 2}px`,
+            top: `${lensPosition.screenY + window.scrollY - responsiveLensSize / 2}px`,
             width: `${responsiveLensSize}px`,
             height: `${responsiveLensSize}px`,
             border: '3px solid #999',
             borderRadius: '50%',
             overflow: 'hidden',
-            pointerEvents: 'none',
-            left: `${lensPosition.screenX - responsiveLensSize / 2}px`,
-            top: `${lensPosition.screenY - responsiveLensSize / 2}px`,
-            zIndex: 10,
+            zIndex: 10000,
+            background: 'rgba(255,255,255,0.1)'
           }}
         >
           <img
@@ -102,6 +103,7 @@ const Magnifier = ({ src, width = 1000, zoom = 2.5, lensSize = 180 }) => {
               transformOrigin: 'top left',
               left: `${-lensPosition.x * zoom + responsiveLensSize / 2}px`,
               top: `${-lensPosition.y * zoom + responsiveLensSize / 2}px`,
+              pointerEvents: 'none',
             }}
           />
         </div>

@@ -48,7 +48,7 @@ const SleepNewspaperModal = ({ onClose }) => {
         height: '100vh',
         backgroundColor: 'rgba(0, 0, 0, 0.7)',
         zIndex: 9999,
-        overflowY: (isTablet && isMobileLandscape) ? 'auto' : 'hidden', // 데스크탑/세로모드에서 스크롤 완전 제거
+        overflow: 'hidden', // 스크롤 완전 제거
         maxHeight: '100vh',
         padding: 0,
         margin: 0,
@@ -58,8 +58,8 @@ const SleepNewspaperModal = ({ onClose }) => {
       }}>
       <div style={{
         position: 'relative',
-        height: '100vh',
-        width: '100vw',
+        height: isMobileLandscape ? '100vh' : '100vh',
+        width: isMobileLandscape ? '100vw' : '100vw',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -67,7 +67,7 @@ const SleepNewspaperModal = ({ onClose }) => {
         padding: 0,
         margin: 0,
       }}>
-        <Magnifier src={newspaperImage} />
+        <Magnifier src={newspaperImage} width={isMobileLandscape ? window.innerWidth : 1000} lensSize={isMobileLandscape ? 90 : 180} />
       </div>
     </div>
   );
