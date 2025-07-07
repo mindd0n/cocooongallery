@@ -31,27 +31,25 @@
     <div class="popup-box" id="popupBox">
       <button class="close-btn" onclick="closePopup()">&#10005;</button>
 
-      <!-- 타이틀 영역 -->
-      <div class="popup-title">
-        <div class="popup-sub">당신에게 필요한 쉼</div>
-        <div class="popup-main" id="popupMainTitle">감정적 쉼</div>
+      <div class="popup-left">
+        <!-- 쉼 아이콘 이미지 및 타이틀/설명 텍스트 -->
+        <div class="popup-title">
+          <div class="popup-sub">당신에게 필요한 쉼</div>
+          <div class="popup-main" id="popupMainTitle">감정적 쉼</div>
+        </div>
+        <div class="popup-desc" id="popupDesc">감정 소비로 인한 탈진을 회복하는 쉼</div>
+        <img id="popupImage" class="popup-image" src="image/rest3.png" alt="쉼 아이콘" />
       </div>
-
-      <!-- 쉼 정의 한 줄 (아이콘 이미지보다 위로 이동됨) -->
-      <div class="popup-desc" id="popupDesc">감정 소비로 인한 탈진을 회복하는 쉼</div>
-
-      <!-- 쉼 아이콘 이미지 -->
-      <img id="popupImage" class="popup-image" src="image/rest3.png" alt="쉼 아이콘" />
-
-      <!-- 슬라이더 -->
-      <div class="slider">
-        <div class="footer-text">cocooon이 제안하는 쉼의 방법</div>
-
-        <div class="slider-container">
-          <div class="slider-track" id="sliderTrack"></div>
-          <div class="slider-buttons">
-            <button onclick="prevSlide()">&#8249;</button>
-            <button onclick="nextSlide()">&#8250;</button>
+      <div class="popup-right">
+        <!-- 슬라이더 -->
+        <div class="slider">
+          <div class="footer-text">cocooon이 제안하는 쉼의 방법</div>
+          <div class="slider-container">
+            <div class="slider-track" id="sliderTrack"></div>
+            <div class="slider-buttons">
+              <button onclick="prevSlide()">&#8249;</button>
+              <button onclick="nextSlide()">&#8250;</button>
+            </div>
           </div>
         </div>
       </div>
