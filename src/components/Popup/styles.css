@@ -139,7 +139,7 @@
 
 .slider {
   margin-top: 0 !important;
-}
+} 
 
 @media (max-width: 1024px) and (orientation: landscape) {
   .popup-content {
