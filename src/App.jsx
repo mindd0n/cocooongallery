@@ -94,7 +94,11 @@ function App() {
 
   useEffect(() => {
     function checkOrientation() {
-      setIsMobileLandscape(window.innerWidth > window.innerHeight && window.innerWidth <= 1024);
+      const next = window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
+      setIsMobileLandscape(prev => {
+        if (prev !== next) return next;
+        return prev;
+      });
     }
     checkOrientation();
     window.addEventListener('resize', checkOrientation);
@@ -121,7 +125,7 @@ function App() {
       <OrientationGuide />
       <div
         style={isMobileLandscape ? {
-          minHeight: '200vh',
+          minHeight: '100vh',
           height: 'auto',
           width: '100vw',
           position: 'relative',
