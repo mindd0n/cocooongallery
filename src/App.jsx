@@ -39,22 +39,27 @@ function App() {
     requestAnimationFrame(animate);
   };
 
-  useEffect(() => {
+  // 음악 play 함수 (엔터 버튼 클릭 시에만 호출)
+  const playMusic = () => {
     if (!audioRef.current) {
       audioRef.current = new Audio('https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media/x.waybackhome.mp4');
       audioRef.current.loop = true;
       audioRef.current.volume = 0.6;
     }
-    // 인트로가 끝나야만 음악 재생
-    if (!showIntro && isMusicOn && !selectedButton) {
-      audioRef.current.play().catch(() => {});
-      fadeVolume(0.6, 800); // 페이드인
-    } else {
-      fadeVolume(0, 800); // 페이드아웃
+    audioRef.current.play().catch(() => {});
+    fadeVolume(0.6, 800);
+  };
+
+  // 음악 끄기/볼륨 페이드아웃만 관리 (자동재생 제거)
+  useEffect(() => {
+    if (!audioRef.current) return;
+    if (!isMusicOn || selectedButton || showIntro) {
+      fadeVolume(0, 800);
       setTimeout(() => {
         if (audioRef.current) audioRef.current.pause();
       }, 800);
     }
+    // 음악 켜기는 playMusic에서만!
     return () => {
       if (audioRef.current) audioRef.current.pause();
     };
@@ -79,6 +84,7 @@ function App() {
   const handleIntroComplete = () => {
     console.log('인트로 완료, 바로 3D 룸으로 전환');
     setShowIntro(false);
+    playMusic(); // 엔터 버튼 클릭 시점에만 음악 재생
     // setShowLoading(true);
     // setLoadingProgress(0);
   };
