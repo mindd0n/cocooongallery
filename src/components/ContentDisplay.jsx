@@ -1015,6 +1015,37 @@ const ContentDisplay = ({ buttonId, onClose }) => {
     return null;
   }
 
+  if (buttonId === 'btn_p_note') {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.7)',
+          zIndex: 3000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        onClick={onClose}
+      >
+        <div
+          style={getDiaryPopupStyle()}
+          onClick={e => e.stopPropagation()}
+        >
+          <iframe
+            src={ContentMap[buttonId].src}
+            style={{ width: '100%', height: '100%', border: 'none', background: 'white', display: 'block' }}
+            title={buttonId}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div 
       className="content-display"
@@ -1042,9 +1073,12 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               left: 32,
               zIndex: 1001,
               fontFamily: 'Pretendard, sans-serif',
-              fontSize: 18,
-              color: '#fff',
-              background: 'rgba(0,0,0,0.0)',
+              fontSize: typeof window !== 'undefined' && window.innerWidth <= 700 && window.innerHeight <= 500 && window.innerWidth > window.innerHeight ? 14 : 18,
+              color: '#222',
+              background: 'rgba(255,255,255,0.85)',
+              padding: '6px 18px',
+              borderRadius: '16px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
               cursor: 'pointer',
               userSelect: 'none',
               letterSpacing: '-0.5px',
@@ -1116,25 +1150,32 @@ const ContentDisplay = ({ buttonId, onClose }) => {
             } else if (buttonId === 'btn_w_sun') {
               return <SunContent />;
             } else if (buttonId === 'btn_p_note') {
-              // 모바일 가로(landscape) 감지
-              const isMobileLandscape = typeof window !== 'undefined' && window.innerWidth <= 1024 && window.innerWidth > window.innerHeight;
-              const iframeWidth = isMobileLandscape ? '80%' : '100%';
-              const iframeHeight = isMobileLandscape ? '80%' : '100%';
               return (
-                <div style={{ width: '100%', height: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <iframe
-                    src={ContentMap[buttonId].src}
-                    style={{
-                      width: iframeWidth,
-                      height: iframeHeight,
-                      border: 'none',
-                      zIndex: 10,
-                      position: 'relative',
-                      background: 'transparent',
-                      display: 'block',
-                    }}
-                    title="diary"
-                  />
+                <div
+                  style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    background: 'rgba(0,0,0,0.7)',
+                    zIndex: 3000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  onClick={onClose}
+                >
+                  <div
+                    style={getDiaryPopupStyle()}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <iframe
+                      src={ContentMap[buttonId].src}
+                      style={{ width: '100%', height: '100%', border: 'none', background: 'white', display: 'block' }}
+                      title={buttonId}
+                    />
+                  </div>
                 </div>
               );
             } else if (buttonId === 'btn_h_dog') {
@@ -1289,7 +1330,23 @@ const ContentDisplay = ({ buttonId, onClose }) => {
   );
 };
 
-
+// btn_p_note 팝업 스타일 함수 추가/수정
+function getDiaryPopupStyle() {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
+  return {
+    width: isMobile ? '70vw' : 'min(98vw, 900px)',
+    height: 'auto',
+    aspectRatio: '1189/842', // 일기장 원본 비율
+    background: 'white',
+    borderRadius: '12px',
+    overflow: 'hidden',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    maxHeight: '98vh',
+  };
+}
 
 export { GenericContent };
 export default ContentDisplay;
