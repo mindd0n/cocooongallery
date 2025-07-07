@@ -753,7 +753,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
           return (
             <iframe 
               key="iframe_p" 
-              src="/content/btn_h_home/P.수면신문/dist/index.html" 
+              src="/content/btn_h_home/P.sleep-newspaper/dist/index.html" 
               style={{ 
                 width: '100%', 
                 height: '100%', 
