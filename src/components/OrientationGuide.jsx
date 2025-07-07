@@ -11,12 +11,14 @@ const SWIPE_UP_ICON = (
 
 export default function OrientationGuide() {
   const [orientation, setOrientation] = useState('landscape');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
   const [showSwipeUp, setShowSwipeUp] = useState(false);
   const touchStartY = useRef(null);
   const touchMoved = useRef(false);
 
   useEffect(() => {
     function checkOrientation() {
+      setIsMobile(window.innerWidth <= 1024);
       if (window.innerWidth > window.innerHeight) {
         setOrientation('landscape');
       } else {
@@ -69,7 +71,7 @@ export default function OrientationGuide() {
   }
 
   // 모바일 환경에서만 동작 (1024px 이하)
-  if (window.innerWidth > 1024) return null;
+  if (!isMobile) return null;
 
   // 세로모드: 가로로 돌려달라는 오버레이
   if (orientation === 'portrait') {

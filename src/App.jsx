@@ -101,18 +101,19 @@ function App() {
   useEffect(() => {
     function checkOrientation() {
       const next = window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
-      setIsMobileLandscape(prev => {
-        if (prev !== next) return next;
-        return prev;
-      });
+      setIsMobileLandscape(prev => (prev !== next ? next : prev));
     }
+    // 최초 1회만 실행
     checkOrientation();
-    window.addEventListener('resize', checkOrientation);
-    window.addEventListener('orientationchange', checkOrientation);
-    return () => {
-      window.removeEventListener('resize', checkOrientation);
-      window.removeEventListener('orientationchange', checkOrientation);
-    };
+    // 모바일에서만 이벤트 등록
+    if (window.innerWidth <= 1024) {
+      window.addEventListener('resize', checkOrientation);
+      window.addEventListener('orientationchange', checkOrientation);
+      return () => {
+        window.removeEventListener('resize', checkOrientation);
+        window.removeEventListener('orientationchange', checkOrientation);
+      };
+    }
   }, []);
 
   if (showIntro) {
