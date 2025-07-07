@@ -56,13 +56,24 @@ function App() {
   // 음악 끄기/볼륨 페이드아웃만 관리 (자동재생 제거)
   useEffect(() => {
     if (!audioRef.current) return;
-    if (!isMusicOn || selectedButton || showIntro) {
+    if (!isMusicOn || showIntro) {
+      fadeVolume(0, 800);
+      setTimeout(() => {
+        if (audioRef.current) audioRef.current.pause();
+      }, 800);
+    } else if (!selectedButton) {
+      // 팝업창이 닫혔을 때 음악 재생 복구
+      if (audioRef.current.paused) {
+        audioRef.current.play().catch(() => {});
+        fadeVolume(0.6, 800);
+      }
+    } else if (selectedButton) {
+      // 팝업창이 열려있을 때 음악 일시 중단
       fadeVolume(0, 800);
       setTimeout(() => {
         if (audioRef.current) audioRef.current.pause();
       }, 800);
     }
-    // 음악 켜기는 playMusic에서만!
     return () => {
       if (audioRef.current) audioRef.current.pause();
     };
