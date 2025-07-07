@@ -1,0 +1,10 @@
+{
+  "title": "Go 버튼",
+  "type": "image",
+<<<<<<< HEAD
+  "src": "/assets/deploy_media/go_image.jpg",
+=======
+  "src": "go_image.jpg",
+>>>>>>> 4c4e400cdeaaca18dec27ae52edf63b13a05f13f
+  "description": "Go 버튼 관련 이미지"
+} 

@@ -1,0 +1,13 @@
+{
+  "title": "램프",
+<<<<<<< HEAD
+  "description": "방을 밝게 비추는 천장 램프",
+  "type": "ceiling",
+  "position": "top",
+  "src": "/assets/deploy_media/lamp_image.jpg"
+=======
+  "type": "image",
+  "src": "lamp_image.jpg",
+  "description": "천장 램프 이미지"
+>>>>>>> 4c4e400cdeaaca18dec27ae52edf63b13a05f13f
+} 

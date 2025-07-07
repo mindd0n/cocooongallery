@@ -1,0 +1,10 @@
+{
+  "title": "강아지",
+  "type": "image",
+<<<<<<< HEAD
+  "src": "/assets/deploy_media/dog.jpg"
+=======
+  "src": "dog_image.jpg",
+  "description": "집 벽의 강아지 이미지"
+>>>>>>> 4c4e400cdeaaca18dec27ae52edf63b13a05f13f
+} 
