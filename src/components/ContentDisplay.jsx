@@ -19,16 +19,16 @@ const S3_BASE_URL = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/dep
 
 const ContentMap = {
   // Pavilion
-  'btn_p_pavilion': { type: 'custom' },
+  'btn_p_pavilion': { type: 'iframe', src: '/content/btn_p_pavilion/G.영화추천리스트/index.html' },
   'btn_p_note': { type: 'iframe', src: '/content/btn_p_note/dist/index.html' },
-  'btn_p_tree': { type: 'custom' },
-  'btn_p_go': { type: 'custom' },
+  'btn_p_tree': { type: 'iframe', src: '/content/btn_p_tree/index.html' },
+  'btn_p_go': { type: 'iframe', src: '/content/btn_p_go/index.html' },
 
   // Home
   'btn_h_dog': { type: 'iframe', src: '/content/btn_h_dog/S.hoya-story/dist/index.html' },
-  'btn_h_star': { type: 'custom' },
+  'btn_h_star': { type: 'video', src: `${S3_BASE_URL}/S.mp4` },
   'btn_h_ribbon': { type: 'video', src: `${S3_BASE_URL}/R.mp4` },
-  'btn_h_home': { type: 'custom' },
+  'btn_h_home': { type: 'iframe', src: '/content/btn_h_home/index.html' },
 
   // Bus-stop
   'btn_b_bus': { type: 'video', src: `${S3_BASE_URL}/i.mp4` },
@@ -39,15 +39,15 @@ const ContentMap = {
   'btn_w_walk': { type: 'video', src: `${S3_BASE_URL}/L.mp4` },
   'btn_w_bridge': { type: 'video', src: `${S3_BASE_URL}/M.mp4` },
   'btn_w_sign': { type: 'video', src: `${S3_BASE_URL}/N.mp4` },
-  'btn_w_sun': { type: 'custom' },
+  'btn_w_sun': { type: 'iframe', src: '/content/btn_w_sun/index.html' },
 
   // Ceiling
-  'btn_c_lamp': { type: 'iframe', src: null },
+  'btn_c_lamp': { type: 'iframe', src: '/content/btn_c_lamp/index.html' },
   'btn_c_heart': { type: 'image', src: '/content/btn_c_heart/U.PNG' },
 
   // Floor
   'btn_f_rug': { type: 'iframe', src: '/content/btn_f_rug/%EC%B0%B8%EC%97%AC%ED%98%95%20%ED%8E%98%EC%9D%B4%EC%A7%80/index.html' },
-  // 'btn_f_phone': { type: 'iframe', src: '/content/btn_f_phone/V.%EB%94%94%EC%A7%80%ED%84%B8%EB%94%94%ED%86%A1%EC%8A%A4/index.html' },
+  'btn_f_phone': { type: 'iframe', src: '/content/btn_f_phone/V.%EB%94%94%EC%A7%80%ED%84%B8%EB%94%94%ED%86%A1%EC%8A%A4/index.html' },
 };
 
 const TreeContent = () => {
@@ -453,258 +453,258 @@ const ContentDisplay = ({ buttonId, onClose }) => {
     return (
       <>
         <PlaySingingBowlSoundOnce />
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.85)',
+          zIndex: 3000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        onClick={onClose}
+      >
         <div
           style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            background: 'rgba(0,0,0,0.85)',
-            zIndex: 3000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            position: 'relative',
+            width: '80vw',
+            aspectRatio: '16/9',
+            maxWidth: '1200px',
+            maxHeight: '80vh',
+            background: `url('/content/btn_p_go/배경.png') center/contain no-repeat`,
+            borderRadius: '16px',
+            overflow: 'hidden',
+            display: 'block',
           }}
-          onClick={onClose}
+          onClick={e => e.stopPropagation()}
         >
+          {/* 싱잉볼 클릭 오버레이 */}
           <div
             style={{
-              position: 'relative',
-              width: '80vw',
-              aspectRatio: '16/9',
-              maxWidth: '1200px',
-              maxHeight: '80vh',
-              background: `url('/content/btn_p_go/배경.png') center/contain no-repeat`,
-              borderRadius: '16px',
-              overflow: 'hidden',
-              display: 'block',
+              position: 'absolute',
+              left: '70%',
+              top: '40%',
+              width: '15%',
+              height: '30%',
+              cursor: 'pointer',
+              zIndex: 10,
+              // background: 'rgba(255,0,0,0.2)' // 개발 중 위치 확인용
             }}
-            onClick={e => e.stopPropagation()}
-          >
-            {/* 싱잉볼 클릭 오버레이 */}
-            <div
-              style={{
-                position: 'absolute',
-                left: '70%',
-                top: '40%',
-                width: '15%',
-                height: '30%',
-                cursor: 'pointer',
-                zIndex: 10,
-                // background: 'rgba(255,0,0,0.2)' // 개발 중 위치 확인용
-              }}
-              onClick={e => {
-                e.stopPropagation();
-                if (isSingingBowlPlaying && singingBowlAudio) {
-                  singingBowlAudio.pause();
-                  singingBowlAudio.currentTime = 0;
+            onClick={e => {
+              e.stopPropagation();
+              if (isSingingBowlPlaying && singingBowlAudio) {
+                singingBowlAudio.pause();
+                singingBowlAudio.currentTime = 0;
+                setIsSingingBowlPlaying(false);
+              } else {
+                const audio = new Audio('https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media/%EC%8B%B1%EC%9E%89%EB%B3%BC%ED%9A%A8%EA%B3%BC%EC%9D%8C.m4a');
+                audio.volume = 0.5;
+                audio.play();
+                setSingingBowlAudio(audio);
+                setIsSingingBowlPlaying(true);
+                // 재생이 끝나면 상태 초기화
+                audio.onended = () => {
                   setIsSingingBowlPlaying(false);
-                } else {
-                  const audio = new Audio('https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media/%EC%8B%B1%EC%9E%89%EB%B3%BC%ED%9A%A8%EA%B3%BC%EC%9D%8C.m4a');
-                  audio.volume = 0.5;
-                  audio.play();
-                  setSingingBowlAudio(audio);
-                  setIsSingingBowlPlaying(true);
-                  // 재생이 끝나면 상태 초기화
-                  audio.onended = () => {
-                    setIsSingingBowlPlaying(false);
-                    setSingingBowlAudio(null);
-                  };
+                  setSingingBowlAudio(null);
+                };
+              }
+            }}
+          />
+          {/* 아이콘들 - 통합 클릭 처리 */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'auto',
+              cursor: 'pointer',
+              zIndex: selectedHomeContent === 'icon_p' ? 1 : 3
+            }}
+            onMouseMove={e => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const y = e.clientY - rect.top;
+              
+              // icon_a와 icon_b 모두 확인
+              const iconA = iconARef.current;
+              const iconB = iconBRef.current;
+              
+              if (iconA) {
+                const imgAX = Math.round((x) * (iconA.naturalWidth / rect.width));
+                const imgAY = Math.round((y) * (iconA.naturalHeight / rect.height));
+                
+                if (isImagePixelOpaque(iconA, imgAX, imgAY)) {
+                  setHoveredIcon('icon_a');
+                  return;
                 }
-              }}
-            />
-            {/* 아이콘들 - 통합 클릭 처리 */}
-            <div
+              }
+              
+              if (iconB) {
+                const imgBX = Math.round((x) * (iconB.naturalWidth / rect.width));
+                const imgBY = Math.round((y) * (iconB.naturalHeight / rect.height));
+                
+                if (isImagePixelOpaque(iconB, imgBX, imgBY)) {
+                  setHoveredIcon('icon_b');
+                  return;
+                }
+              }
+              
+              setHoveredIcon(null);
+            }}
+            onMouseLeave={() => setHoveredIcon(null)}
+            onClick={e => {
+              e.stopPropagation();
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const y = e.clientY - rect.top;
+              
+              // icon_a와 icon_b 모두 확인
+              const iconA = iconARef.current;
+              const iconB = iconBRef.current;
+              
+              if (iconA) {
+                const imgAX = Math.round((x) * (iconA.naturalWidth / rect.width));
+                const imgAY = Math.round((y) * (iconA.naturalHeight / rect.height));
+                
+                if (isImagePixelOpaque(iconA, imgAX, imgAY)) {
+                  console.log('Icon A click accepted');
+                  setShowGoVideo(true);
+                  return;
+                }
+              }
+              
+              if (iconB) {
+                const imgBX = Math.round((x) * (iconB.naturalWidth / rect.width));
+                const imgBY = Math.round((y) * (iconB.naturalHeight / rect.height));
+                
+                if (isImagePixelOpaque(iconB, imgBX, imgBY)) {
+                  console.log('Icon B click accepted');
+                  setShowBVideo(true);
+                  return;
+                }
+              }
+              
+              console.log('Click rejected - transparent pixel on both icons');
+            }}
+          >
+            <img
+              src={'/content/btn_p_go/icon_a.png'}
+              alt="A 버튼"
+              ref={iconARef}
               style={{
                 position: 'absolute',
                 top: 0,
                 left: 0,
                 width: '100%',
                 height: '100%',
-                pointerEvents: 'auto',
-                cursor: 'pointer',
-                zIndex: selectedHomeContent === 'icon_p' ? 1 : 3
+                objectFit: 'contain',
+                pointerEvents: 'none',
+                zIndex: 1,
+                transition: 'transform 0.2s ease-in-out',
+                transform: hoveredIcon === 'icon_a' ? 'scale(1.1)' : 'scale(1)'
               }}
-              onMouseMove={e => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                // icon_a와 icon_b 모두 확인
-                const iconA = iconARef.current;
-                const iconB = iconBRef.current;
-                
-                if (iconA) {
-                  const imgAX = Math.round((x) * (iconA.naturalWidth / rect.width));
-                  const imgAY = Math.round((y) * (iconA.naturalHeight / rect.height));
-                  
-                  if (isImagePixelOpaque(iconA, imgAX, imgAY)) {
-                    setHoveredIcon('icon_a');
-                    return;
-                  }
-                }
-                
-                if (iconB) {
-                  const imgBX = Math.round((x) * (iconB.naturalWidth / rect.width));
-                  const imgBY = Math.round((y) * (iconB.naturalHeight / rect.height));
-                  
-                  if (isImagePixelOpaque(iconB, imgBX, imgBY)) {
-                    setHoveredIcon('icon_b');
-                    return;
-                  }
-                }
-                
-                setHoveredIcon(null);
+              onLoad={() => handleGoIconLoad('icon_a', iconARef)}
+            />
+            <img
+              src={'/content/btn_p_go/icon_b.png'}
+              alt="B 버튼"
+              ref={iconBRef}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                pointerEvents: 'none',
+                zIndex: 2,
+                transition: 'transform 0.2s ease-in-out',
+                transform: hoveredIcon === 'icon_b' ? 'scale(1.1)' : 'scale(1)'
               }}
-              onMouseLeave={() => setHoveredIcon(null)}
-              onClick={e => {
-                e.stopPropagation();
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                // icon_a와 icon_b 모두 확인
-                const iconA = iconARef.current;
-                const iconB = iconBRef.current;
-                
-                if (iconA) {
-                  const imgAX = Math.round((x) * (iconA.naturalWidth / rect.width));
-                  const imgAY = Math.round((y) * (iconA.naturalHeight / rect.height));
-                  
-                  if (isImagePixelOpaque(iconA, imgAX, imgAY)) {
-                    console.log('Icon A click accepted');
-                    setShowGoVideo(true);
-                    return;
-                  }
-                }
-                
-                if (iconB) {
-                  const imgBX = Math.round((x) * (iconB.naturalWidth / rect.width));
-                  const imgBY = Math.round((y) * (iconB.naturalHeight / rect.height));
-                  
-                  if (isImagePixelOpaque(iconB, imgBX, imgBY)) {
-                    console.log('Icon B click accepted');
-                    setShowBVideo(true);
-                    return;
-                  }
-                }
-                
-                console.log('Click rejected - transparent pixel on both icons');
-              }}
-            >
-              <img
-                src={'/content/btn_p_go/icon_a.png'}
-                alt="A 버튼"
-                ref={iconARef}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  pointerEvents: 'none',
-                  zIndex: 1,
-                  transition: 'transform 0.2s ease-in-out',
-                  transform: hoveredIcon === 'icon_a' ? 'scale(1.1)' : 'scale(1)'
-                }}
-                onLoad={() => handleGoIconLoad('icon_a', iconARef)}
-              />
-              <img
-                src={'/content/btn_p_go/icon_b.png'}
-                alt="B 버튼"
-                ref={iconBRef}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  pointerEvents: 'none',
-                  zIndex: 2,
-                  transition: 'transform 0.2s ease-in-out',
-                  transform: hoveredIcon === 'icon_b' ? 'scale(1.1)' : 'scale(1)'
-                }}
-                onLoad={() => handleGoIconLoad('icon_b', iconBRef)}
-              />
-            </div>
-            {/* icon_a 클릭 시 A 영상 오버레이 */}
-            {showGoVideo && (
-              <div
-                style={{
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  width: '100vw',
-                  height: '100vh',
-                  background: 'rgba(0,0,0,0.85)',
-                  zIndex: 4000,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                onClick={() => setShowGoVideo(false)}
-              >
-                <div
-                  style={{
-                    position: 'relative',
-                    width: 'min(900px,80vw)',
-                    aspectRatio: '16/9',
-                    background: 'black',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  onClick={e => e.stopPropagation()}
-                >
-                  <GenericContent type="video" src={`${S3_BASE_URL}/A.mp4`} />
-                </div>
-              </div>
-            )}
-            
-            {/* icon_b 클릭 시 B 영상 오버레이 */}
-            {showBVideo && (
-              <div
-                style={{
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  width: '100vw',
-                  height: '100vh',
-                  background: 'rgba(0,0,0,0.85)',
-                  zIndex: 4000,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                onClick={() => setShowBVideo(false)}
-              >
-                <div
-                  style={{
-                    position: 'relative',
-                    width: 'min(900px,80vw)',
-                    aspectRatio: '16/9',
-                    background: 'black',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  onClick={e => e.stopPropagation()}
-                >
-                  <GenericContent type="video" src={`${S3_BASE_URL}/B.mp4`} />
-                </div>
-              </div>
-            )}
+              onLoad={() => handleGoIconLoad('icon_b', iconBRef)}
+            />
           </div>
+          {/* icon_a 클릭 시 A 영상 오버레이 */}
+          {showGoVideo && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                background: 'rgba(0,0,0,0.85)',
+                zIndex: 4000,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              onClick={() => setShowGoVideo(false)}
+            >
+              <div
+                style={{
+                  position: 'relative',
+                  width: 'min(900px,80vw)',
+                  aspectRatio: '16/9',
+                  background: 'black',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onClick={e => e.stopPropagation()}
+              >
+                <GenericContent type="video" src={`${S3_BASE_URL}/A.mp4`} />
+              </div>
+            </div>
+          )}
+          
+          {/* icon_b 클릭 시 B 영상 오버레이 */}
+          {showBVideo && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                background: 'rgba(0,0,0,0.85)',
+                zIndex: 4000,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              onClick={() => setShowBVideo(false)}
+            >
+              <div
+                style={{
+                  position: 'relative',
+                  width: 'min(900px,80vw)',
+                  aspectRatio: '16/9',
+                  background: 'black',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onClick={e => e.stopPropagation()}
+              >
+                <GenericContent type="video" src={`${S3_BASE_URL}/B.mp4`} />
+              </div>
+            </div>
+          )}
         </div>
+      </div>
       </>
     );
   }
@@ -1280,7 +1280,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               // 리본(R.mp4) 영상: 팝업창의 63% 크기, 영상 약간 아래로(marginTop)
               return (
                 <video
-                  src={iframeSrc}
+                  src={ContentMap[buttonId].src}
                   style={{ width: '63vw', height: '63vh', maxWidth: '63vw', maxHeight: '63vh', objectFit: 'contain', display: 'block', background: 'none', borderRadius: 8, marginTop: '4vh' }}
                   loop
                   playsInline
@@ -1292,7 +1292,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               // 다리 아이콘: 영상 위치를 조금 더 아래로(marginTop: 8vh)
               return (
                 <video
-                  src={iframeSrc}
+                  src={ContentMap[buttonId].src}
                   style={{ width: '55vw', height: '55vh', maxWidth: '55vw', maxHeight: '55vh', objectFit: 'contain', display: 'block', background: 'none', borderRadius: 8, marginTop: '8vh' }}
                   loop
                   playsInline
@@ -1304,7 +1304,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               // 산책, 표지판 아이콘: 다리 아이콘과 동일한 영상 스타일 적용
               return (
                 <video
-                  src={iframeSrc}
+                  src={ContentMap[buttonId].src}
                   style={{ width: '55vw', height: '55vh', maxWidth: '55vw', maxHeight: '55vh', objectFit: 'contain', display: 'block', background: 'none', borderRadius: 8, marginTop: '8vh' }}
                   loop
                   playsInline
@@ -1316,7 +1316,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               // 버스, 버스정류장 아이콘: 다리/산책/표지판과 동일한 영상 스타일 적용
               return (
                 <video
-                  src={iframeSrc}
+                  src={ContentMap[buttonId].src}
                   style={{ width: '55vw', height: '55vh', maxWidth: '55vw', maxHeight: '55vh', objectFit: 'contain', display: 'block', background: 'none', borderRadius: 8, marginTop: '8vh' }}
                   loop
                   playsInline
