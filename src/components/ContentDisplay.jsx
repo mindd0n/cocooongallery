@@ -1056,8 +1056,10 @@ const ContentDisplay = ({ buttonId, onClose }) => {
       >
         <div
           style={{
-            width: '70vw',
-            height: '88vh',
+            width: '1180px',
+            height: '800px',
+            maxWidth: '100vw',
+            maxHeight: '100vh',
             background: 'white',
             borderRadius: '12px',
             overflow: 'hidden',
