@@ -1055,7 +1055,17 @@ const ContentDisplay = ({ buttonId, onClose }) => {
         onClick={onClose}
       >
         <div
-          style={getDiaryPopupStyle()}
+          style={{
+            width: '70vw',
+            height: '88vh',
+            background: 'white',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
           onClick={e => e.stopPropagation()}
         >
           <iframe
