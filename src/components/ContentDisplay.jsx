@@ -290,9 +290,13 @@ const GenericContent = ({ type, src, onClose, objectFit = 'contain', buttonId })
             width: '100%',
             height: '100%',
             border: 'none',
+            background: 'black',
+            display: 'block',
             minHeight: '600px'
           }}
           title={`Content for ${buttonId || 'unknown'}`}
+          allow="autoplay; fullscreen; microphone; camera"
+          sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
         />
       );
     case 'image':
@@ -456,7 +460,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
             left: 0,
             width: '100vw',
             height: '100vh',
-            background: 'rgba(0,0,0,0.7)',
+            background: 'rgba(0,0,0,0.85)',
             zIndex: 3000,
             display: 'flex',
             alignItems: 'center',
@@ -714,7 +718,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
           left: 0,
           width: '100vw',
           height: '100vh',
-          background: 'rgba(0,0,0,0.7)',
+          background: 'rgba(0,0,0,0.85)',
           zIndex: 3000,
           display: 'flex',
           alignItems: 'center',
@@ -861,7 +865,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
           left: 0,
           width: '100vw',
           height: '100vh',
-          background: 'rgba(0,0,0,0.7)',
+          background: 'rgba(0,0,0,0.85)',
           zIndex: 3000,
           display: 'flex',
           alignItems: 'center',
@@ -1010,7 +1014,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               left: 0,
               width: '100vw',
               height: '100vh',
-              background: 'rgba(0,0,0,0.7)',
+              background: 'rgba(0,0,0,0.85)',
               zIndex: 9999,
               display: 'flex',
               alignItems: 'center',
@@ -1042,7 +1046,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
           left: 0,
           width: '100vw',
           height: '100vh',
-          background: 'rgba(0,0,0,0.7)',
+          background: 'rgba(0,0,0,0.85)',
           zIndex: 3000,
           display: 'flex',
           alignItems: 'center',
@@ -1073,7 +1077,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
         left: 0,
         width: '100vw',
         height: '100vh',
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -1176,7 +1180,7 @@ const ContentDisplay = ({ buttonId, onClose }) => {
                     left: 0,
                     width: '100vw',
                     height: '100vh',
-                    background: 'rgba(0,0,0,0.7)',
+                    background: 'rgba(0,0,0,0.85)',
                     zIndex: 3000,
                     display: 'flex',
                     alignItems: 'center',
