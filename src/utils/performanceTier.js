@@ -117,7 +117,7 @@ export const tierSettings = {
     shadows: true,
     shadowMapSize: 1024,
     antialias: true,
-    toneMapping: 'ACESFilmicToneMapping',
+    toneMapping: 'NoToneMapping',
     alpha: false,
     postProcessing: true, // Post-processing 활성화
     lighting: {

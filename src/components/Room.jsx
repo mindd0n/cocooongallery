@@ -1165,8 +1165,7 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
             depth: true,
             logarithmicDepthBuffer: false,
             outputColorSpace: THREE.SRGBColorSpace,
-            toneMapping: THREE[tierSettings.toneMapping],
-            toneMappingExposure: 1.0
+            toneMapping: THREE.NoToneMapping
           }}
           camera={{
             position: INITIAL_CAMERA_POSITION,
@@ -1218,16 +1217,16 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
             zoomSpeed={isMobile ? 0.8 : 1.0}
           />
           
-          {/* 티어별 조명 시스템 */}
+          {/* 티어별 조명 시스템 - 원본 색감 보존 */}
           {tierSettings.lighting.ambient && (
-            <ambientLight intensity={1.5} color="#fff0e6" />
+            <ambientLight intensity={1.0} color="#ffffff" />
           )}
           
           {tierSettings.lighting.directional && (
             <directionalLight
               position={[0, roomHeight/2, 0]}
-              intensity={1.8}
-              color="#ffe4cc"
+              intensity={1.2}
+              color="#ffffff"
               castShadow={tierSettings.shadows}
             />
           )}
@@ -1236,18 +1235,18 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
             <>
               <pointLight 
                 position={[0, viewerHeight, -roomDepth/2 + 20]}
-                intensity={1.5}
+                intensity={0.8}
                 distance={400}
                 decay={2}
-                color="#fff0e6"
+                color="#ffffff"
                 castShadow={tierSettings.shadows}
               />
               <pointLight 
                 position={[0, viewerHeight, roomDepth/2 - 20]}
-                intensity={1.5}
+                intensity={0.8}
                 distance={400}
                 decay={2}
-                color="#fff0e6"
+                color="#ffffff"
                 castShadow={tierSettings.shadows}
               />
             </>

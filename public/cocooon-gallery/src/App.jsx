@@ -10,17 +10,17 @@ const roomWidth = 166.68; // 150 * 10 / 9
 const roomDepth = 166.68;
 const viewerHeight = 45;
 
-// Lighting configuration
-const ambientLightIntensity = 1.5;
-const ambientLightColor = "#fff0e6";
-const centralLightIntensity = 1.8;
-const centralLightColor = "#ffe4cc";
-const wallLightIntensity = 1.2;
-const wallLightColor = "#fff0e6";
-const cornerLightIntensity = 0.9;
-const cornerLightColor = "#fff0e6";
-const floorLightIntensity = 0.9;
-const floorLightColor = "#fff0e6";
+// Lighting configuration - 원본 색감 보존
+const ambientLightIntensity = 1.0;
+const ambientLightColor = "#ffffff";
+const centralLightIntensity = 1.2;
+const centralLightColor = "#ffffff";
+const wallLightIntensity = 0.8;
+const wallLightColor = "#ffffff";
+const cornerLightIntensity = 0.6;
+const cornerLightColor = "#ffffff";
+const floorLightIntensity = 0.6;
+const floorLightColor = "#ffffff";
 
 const minDistance = 30;
 
@@ -516,9 +516,7 @@ export default function App() {
         }}
         gl={{ 
           outputColorSpace: SRGBColorSpace,
-          toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.2,
-          toneMappingGamma: 0.9,
+          toneMapping: THREE.NoToneMapping,
           powerPreference: "high-performance",
           antialias: true,
           stencil: false,
@@ -531,13 +529,13 @@ export default function App() {
           camera.lookAt(0, viewerHeight, 0);
         }}
       >
-        {/* Lighting System - 최적화된 조명 */}
-        <ambientLight intensity={2.2} color={ambientLightColor} />
+        {/* Lighting System - 원본 색감 보존 */}
+        <ambientLight intensity={1.0} color={ambientLightColor} />
         
         {/* Central Ceiling Light */}
         <pointLight
           position={[0, roomHeight/2 - 5, 0]}
-          intensity={2.0}
+          intensity={1.2}
           distance={600}
           decay={2}
           color={centralLightColor}
@@ -550,10 +548,10 @@ export default function App() {
           shadow-camera-far={400}
         />
         
-        {/* Wall Lights - 4개에서 2개로 감소 */}
+        {/* Wall Lights - 원본 색감 보존 */}
         <pointLight 
           position={[0, viewerHeight, -roomDepth/2 + 20]}
-          intensity={1.5}
+          intensity={0.8}
           distance={400}
           decay={2}
           color={wallLightColor}
@@ -567,7 +565,7 @@ export default function App() {
         />
         <pointLight 
           position={[0, viewerHeight, roomDepth/2 - 20]}
-          intensity={1.5}
+          intensity={0.8}
           distance={400}
           decay={2}
           color={wallLightColor}
