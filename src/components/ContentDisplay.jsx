@@ -837,9 +837,9 @@ const ContentDisplay = ({ buttonId, onClose }) => {
         const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
         const imgStyle = isMobile
           ? {
-              width: '58vw',
+              width: '40vw',
               height: 'auto',
-              maxHeight: '88vh',
+              maxHeight: '50vw',
               objectFit: 'contain',
               display: 'block',
               background: 'white',
@@ -1163,6 +1163,37 @@ const ContentDisplay = ({ buttonId, onClose }) => {
   }
 
   if (buttonId === 'btn_p_note') {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
+    const popupStyle = isMobile
+      ? {
+          width: '80vw',
+          height: '40vw', // 80vw / 1.412 ≈ 57vw
+          maxWidth: '80vw',
+          maxHeight: '50vw',
+          background: 'white',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }
+      : {
+          width: '1180px',
+          height: '800px',
+          maxWidth: '100vw',
+          maxHeight: '100vh',
+          background: 'white',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        };
+    const iframeStyle = isMobile
+      ? { width: '80vw', height: '57vw', border: 'none', background: 'white', display: 'block' }
+      : { width: '100%', height: '100%', border: 'none', background: 'white', display: 'block' };
     return (
       <div
         style={{
@@ -1180,24 +1211,12 @@ const ContentDisplay = ({ buttonId, onClose }) => {
         onClick={onClose}
       >
         <div
-          style={{
-            width: '1180px',
-            height: '800px',
-            maxWidth: '100vw',
-            maxHeight: '100vh',
-            background: 'white',
-            borderRadius: '12px',
-            overflow: 'hidden',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          style={popupStyle}
           onClick={e => e.stopPropagation()}
         >
           <iframe
             src={iframeSrc}
-            style={{ width: '100%', height: '100%', border: 'none', background: 'white', display: 'block' }}
+            style={iframeStyle}
             title={buttonId}
           />
         </div>
@@ -1309,6 +1328,11 @@ const ContentDisplay = ({ buttonId, onClose }) => {
             } else if (buttonId === 'btn_w_sun') {
               return <SunContent />;
             } else if (buttonId === 'btn_p_note') {
+              const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
+              const popupStyle = getDiaryPopupStyle();
+              const iframeStyle = isMobile
+                ? { width: '80vw', height: '57vw', border: 'none', background: 'white', display: 'block' }
+                : { width: '100%', height: '100%', border: 'none', background: 'white', display: 'block' };
               return (
                 <div
                     style={{
@@ -1326,12 +1350,12 @@ const ContentDisplay = ({ buttonId, onClose }) => {
                   onClick={onClose}
                 >
                   <div
-                    style={getDiaryPopupStyle()}
+                    style={popupStyle}
                     onClick={e => e.stopPropagation()}
                   >
                     <iframe
                       src={iframeSrc}
-                      style={{ width: '100%', height: '100%', border: 'none', background: 'white', display: 'block' }}
+                      style={iframeStyle}
                       title={buttonId}
                   />
                   </div>
@@ -1492,10 +1516,28 @@ const ContentDisplay = ({ buttonId, onClose }) => {
 // btn_p_note 팝업 스타일 함수 추가/수정
 function getDiaryPopupStyle() {
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
+  // 1189/842 ≈ 1.412 (A4 landscape)
+  const aspectRatio = 1189 / 842;
+  if (isMobile) {
+    return {
+      width: '80vw',
+      height: '57vw', // 80vw / 1.412 ≈ 57vw
+      maxWidth: '80vw',
+      maxHeight: '57vw',
+      aspectRatio: '1189/842',
+      background: 'white',
+      borderRadius: '12px',
+      overflow: 'hidden',
+      boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    };
+  }
   return {
-    width: isMobile ? '70vw' : 'min(98vw, 900px)',
+    width: 'min(98vw, 900px)',
     height: 'auto',
-    aspectRatio: '1189/842', // 일기장 원본 비율
+    aspectRatio: '1189/842',
     background: 'white',
     borderRadius: '12px',
     overflow: 'hidden',
