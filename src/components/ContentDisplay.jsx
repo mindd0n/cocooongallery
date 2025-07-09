@@ -650,8 +650,9 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               <div
                 style={{
                   position: 'relative',
-                  width: 'min(900px,80vw)',
+                  width: 'min(800px,68vw)',
                   aspectRatio: '16/9',
+                  maxHeight: '68vh',
                   background: 'black',
                   borderRadius: '12px',
                   overflow: 'hidden',
@@ -687,8 +688,9 @@ const ContentDisplay = ({ buttonId, onClose }) => {
               <div
                 style={{
                   position: 'relative',
-                  width: 'min(900px,80vw)',
+                  width: 'min(800px,68vw)',
                   aspectRatio: '16/9',
+                  maxHeight: '68vh',
                   background: 'black',
                   borderRadius: '12px',
                   overflow: 'hidden',

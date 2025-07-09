@@ -175,7 +175,7 @@
   width: 100%;
   max-width: 1200px;
   position: relative;
-  left: -2vw;
+  padding: 0 30px;
   top: 1vw;
 }
 

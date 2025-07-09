@@ -127,6 +127,7 @@ window.addEventListener("DOMContentLoaded", () => {
   let typingFinished = false;
   let typingTimeout;
   let readyToMove = false;
+  let autoMoveTimeout;
 
   if (carpet) carpet.style.display = "none";
   popup.classList.remove("hidden");
@@ -154,6 +155,25 @@ window.addEventListener("DOMContentLoaded", () => {
       } else {
         typingFinished = true;
         readyToMove = true;
+        // 타이핑이 끝나면 2초 뒤 자동 전환 타이머 시작
+        autoMoveTimeout = setTimeout(() => {
+          if (readyToMove) {
+            popup.classList.add("fade-out");
+            setTimeout(() => {
+              popup.classList.add("hidden");
+              document.getElementById("finalPopupOverlay").classList.remove("hidden");
+              document.getElementById("typingBoxFinal").classList.remove("hidden");
+              document.getElementById("typingBoxFinal").classList.add("move-left");
+              document.getElementById("final-text").classList.remove("hidden");
+              document.getElementById("openFormBtn").classList.remove("hidden");
+              document.getElementById("galleryView").classList.remove("hidden");
+              document.getElementById("textView").classList.add("hidden");
+              document.getElementById("galleryIcon").src = "btn_photo-click.png";
+              document.getElementById("textIcon").src = "btn_text.png";
+              readyToMove = false;
+            }, 800);
+          }
+        }, 1000);
       }
     }, speed);
   }
@@ -164,6 +184,27 @@ window.addEventListener("DOMContentLoaded", () => {
       typingText.innerHTML = message;
       typingFinished = true;
       readyToMove = true;
+      // 타이핑 중 클릭 시에도 자동 전환 타이머는 타이핑이 끝난 시점 기준으로만 동작
+      if (!autoMoveTimeout) {
+        autoMoveTimeout = setTimeout(() => {
+          if (readyToMove) {
+            popup.classList.add("fade-out");
+            setTimeout(() => {
+              popup.classList.add("hidden");
+              document.getElementById("finalPopupOverlay").classList.remove("hidden");
+              document.getElementById("typingBoxFinal").classList.remove("hidden");
+              document.getElementById("typingBoxFinal").classList.add("move-left");
+              document.getElementById("final-text").classList.remove("hidden");
+              document.getElementById("openFormBtn").classList.remove("hidden");
+              document.getElementById("galleryView").classList.remove("hidden");
+              document.getElementById("textView").classList.add("hidden");
+              document.getElementById("galleryIcon").src = "btn_photo-click.png";
+              document.getElementById("textIcon").src = "btn_text.png";
+              readyToMove = false;
+            }, 800);
+          }
+        }, 1000);
+      }
     } else if (readyToMove) {
       popup.classList.add("fade-out");
       setTimeout(() => {
