@@ -7,6 +7,8 @@ import './styles.css';
 import { useButtonImageData } from '../hooks/useButtonImageData';
 import ContentDisplay from './ContentDisplay.jsx';
 import gsap from 'gsap';
+import { detectPerformanceTier, getCurrentTierSettings } from '../utils/performanceTier';
+import { loadTexturesSequential, applyTierTextureSettings } from '../utils/loadTexturesSequential';
 
 // 로컬 기본 URL (public 폴더 기준)
 // const LOCAL_BASE_URL = '';
@@ -49,6 +51,16 @@ const wallTexturePaths = {
   ceiling: '/images/walls/wall_ceiling.png',
   floor: '/images/walls/wall_floor.png',
 };
+
+// 공유 머티리얼 (Draw-Call 최적화)
+const sharedMaterial = new THREE.MeshStandardMaterial({
+  transparent: true,
+  opacity: 1,
+  alphaTest: 0.1,
+  depthTest: true,
+  depthWrite: false,
+  side: THREE.DoubleSide,
+});
 
 // 버튼 centroid 픽셀 좌표 (이미지 크기: 2000x1800)
 // const buttonCentroids = {
@@ -560,40 +572,29 @@ const Room = ({
     ]);
   }, [texturesLoaded, frontTex, backTex, leftTex, rightTex, ceilingTex, floorTex]);
 
-  // 텍스처 로딩 완료 시 상태 업데이트
+  // 텍스처 로딩 완료 시 상태 업데이트 (안전한 방식)
   useEffect(() => {
-    const checkTextureLoaded = (texture, key) => {
-      console.log(`체크 중: ${key}`, texture);
-      if (texture && texture.isTexture && texture.image) {
-        console.log(`${key} 텍스처 이미지:`, texture.image.src, 'complete:', texture.image.complete);
-        
-        // 이미지가 완전히 로딩되었거나 로딩 중인 경우
-        if (texture.image.complete && texture.image.naturalWidth > 0) {
-          setTexturesLoaded(prev => {
-            const newState = { ...prev, [key]: true };
-            console.log(`${key} 텍스처 로딩 완료 - 상태 업데이트:`, newState);
-            return newState;
-          });
-        } else {
-          // 이미지 로딩 완료 이벤트 리스너 추가
-          texture.image.onload = () => {
-            console.log(`${key} 텍스처 onload 이벤트 발생`);
-            setTexturesLoaded(prev => {
-              const newState = { ...prev, [key]: true };
-              console.log(`${key} 텍스처 로딩 완료 (onload) - 상태 업데이트:`, newState);
-              return newState;
-            });
-          };
-        }
-      }
+    const checkAndSetTextureLoaded = () => {
+      const newState = {
+        front: !!(frontTex && frontTex.image && frontTex.image.complete),
+        back: !!(backTex && backTex.image && backTex.image.complete),
+        left: !!(leftTex && leftTex.image && leftTex.image.complete),
+        right: !!(rightTex && rightTex.image && rightTex.image.complete),
+        ceiling: !!(ceilingTex && ceilingTex.image && ceilingTex.image.complete),
+        floor: !!(floorTex && floorTex.image && floorTex.image.complete)
+      };
+      
+      setTexturesLoaded(newState);
+      console.log('텍스처 로딩 상태 업데이트:', newState);
     };
 
-    checkTextureLoaded(frontTex, 'front');
-    checkTextureLoaded(backTex, 'back');
-    checkTextureLoaded(leftTex, 'left');
-    checkTextureLoaded(rightTex, 'right');
-    checkTextureLoaded(ceilingTex, 'ceiling');
-    checkTextureLoaded(floorTex, 'floor');
+    // 즉시 체크
+    checkAndSetTextureLoaded();
+    
+    // 1초 후 다시 체크 (이미지가 늦게 로드되는 경우 대비)
+    const timer = setTimeout(checkAndSetTextureLoaded, 1000);
+    
+    return () => clearTimeout(timer);
   }, [frontTex, backTex, leftTex, rightTex, ceilingTex, floorTex]);
 
   // wallButtonData를 로컬 경로로 변경
@@ -704,6 +705,11 @@ const Room = ({
           const isLoaded = texturesLoaded[wall.type];
           const material = materials[wall.type];
           if (!isLoaded || !material) return null;
+          
+          // 공유 머티리얼에 텍스처 적용
+          const wallMaterial = sharedMaterial.clone();
+          wallMaterial.map = material.map;
+          
           return (
             <group key={i} position={wall.pos} rotation={wall.rot}>
               <mesh
@@ -713,7 +719,7 @@ const Room = ({
                 onPointerDown={() => console.log('벽 mesh 클릭됨', wall.type)}
               >
                 <boxGeometry args={[roomWidth, roomHeight, 0.2]} />
-                <primitive object={material} />
+                <primitive object={wallMaterial} />
               </mesh>
               {/* 벽 중앙에 버튼 추가: 반드시 wallButtonData[wall.type] 배열 map만 사용! */}
               {Array.isArray(wallButtonData[wall.type]) && wallButtonData[wall.type].map((btn, idx) => {
@@ -860,6 +866,9 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
   const controlsRef = useRef();
   const [restoreView, setRestoreView] = useState(null);
   const [isLampOverlay, setIsLampOverlay] = useState(false);
+  const [currentTier, setCurrentTier] = useState('full');
+  const [isContextLost, setIsContextLost] = useState(false);
+  
   // 디지털디톡스 효과 상태
   const [phoneEffect, setPhoneEffect] = useState({
     active: false,
@@ -870,14 +879,63 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
   });
   const phoneEffectTimeouts = useRef([]);
 
-  // 기기별 성능 최적화 설정
-  const isMobile = window.innerWidth < 768 && window.innerHeight > window.innerWidth;
-  const devicePixelRatio = isMobile ? [1, 1.5] : [1, 2];
+  // 성능 티어 감지 및 설정
+  useEffect(() => {
+    const tier = detectPerformanceTier();
+    setCurrentTier(tier);
+    console.log(`성능 티어 감지: ${tier}`);
+  }, []);
 
-  // 텍스처 로딩 상태 추적
+  // WebGL Context Lost 처리
+  useEffect(() => {
+    const handleContextLost = (e) => {
+      e.preventDefault();
+      console.warn('WebGL Context Lost - 성능 다운그레이드');
+      
+      // Sentry 로깅 (Sentry가 설정된 경우)
+      if (window.Sentry) {
+        window.Sentry.captureMessage('WebGL Context Lost', { 
+          level: 'warning',
+          tags: { tier: currentTier },
+          extra: { 
+            deviceMemory: navigator.deviceMemory,
+            hardwareConcurrency: navigator.hardwareConcurrency
+          }
+        });
+      }
+      
+      setIsContextLost(true);
+      setCurrentTier('liteA');
+    };
+
+    const handleContextRestored = () => {
+      console.log('WebGL Context Restored');
+      setIsContextLost(false);
+    };
+
+    // Canvas 요소에 이벤트 리스너 추가
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+      canvas.addEventListener('webglcontextlost', handleContextLost);
+      canvas.addEventListener('webglcontextrestored', handleContextRestored);
+    }
+
+    return () => {
+      if (canvas) {
+        canvas.removeEventListener('webglcontextlost', handleContextLost);
+        canvas.removeEventListener('webglcontextrestored', handleContextRestored);
+      }
+    };
+  }, []);
+
+  // 현재 티어 설정 가져오기 (메모이제이션)
+  const tierSettings = useMemo(() => getCurrentTierSettings(), [currentTier]);
+  const isMobile = window.innerWidth < 768 && window.innerHeight > window.innerWidth;
+
+  // 텍스처 순차 로딩 및 진행률 추적 (임시 비활성화)
   useEffect(() => {
     if (onLoadingProgress) {
-      // 간단한 로딩 시뮬레이션 (실제로는 텍스처 로딩 상태를 추적해야 함)
+      // 간단한 로딩 시뮬레이션 (기존 방식으로 복원)
       let progress = 0;
       const interval = setInterval(() => {
         progress += Math.random() * 20;
@@ -1031,18 +1089,18 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
             height: '100vh',
             display: 'block'
           }}
-          dpr={devicePixelRatio}
-          shadows="soft"
+          dpr={tierSettings.dpr}
+          shadows={tierSettings.shadows ? "soft" : false}
           gl={{
-            antialias: !isMobile,
+            antialias: tierSettings.antialias,
             powerPreference: 'low-power',
             clearColor: [0.1, 0.1, 0.1, 1],
-            alpha: false,
+            alpha: tierSettings.alpha,
             stencil: false,
             depth: true,
             logarithmicDepthBuffer: false,
             outputColorSpace: THREE.SRGBColorSpace,
-            toneMapping: THREE.NoToneMapping,
+            toneMapping: THREE[tierSettings.toneMapping],
             toneMappingExposure: 1.0
           }}
           camera={{
@@ -1055,8 +1113,17 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
             camera.lookAt(INITIAL_CAMERA_LOOKAT);
             camera.layers.enable(1);
             gl.setClearColor(0x1a1a1a, 1);
-            if (isMobile) {
-              gl.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+            
+            // 티어별 렌더러 설정 (안전한 방식으로)
+            if (tierSettings.shadowMapSize > 0) {
+              gl.shadowMap.enabled = true;
+              gl.shadowMap.type = THREE.PCFSoftShadowMap;
+              // setSize가 없는 경우를 대비한 안전한 처리
+              if (gl.shadowMap.setSize) {
+                gl.shadowMap.setSize(tierSettings.shadowMapSize, tierSettings.shadowMapSize);
+              }
+            } else {
+              gl.shadowMap.enabled = false;
             }
           }}
         >
@@ -1075,6 +1142,41 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
             rotateSpeed={isMobile ? -0.2 : -0.3}
             zoomSpeed={isMobile ? 0.8 : 1.0}
           />
+          
+          {/* 티어별 조명 시스템 */}
+          {tierSettings.lighting.ambient && (
+            <ambientLight intensity={1.5} color="#fff0e6" />
+          )}
+          
+          {tierSettings.lighting.directional && (
+            <directionalLight
+              position={[0, roomHeight/2, 0]}
+              intensity={1.8}
+              color="#ffe4cc"
+              castShadow={tierSettings.shadows}
+            />
+          )}
+          
+          {tierSettings.lighting.point && (
+            <>
+              <pointLight 
+                position={[0, viewerHeight, -roomDepth/2 + 20]}
+                intensity={1.5}
+                distance={400}
+                decay={2}
+                color="#fff0e6"
+                castShadow={tierSettings.shadows}
+              />
+              <pointLight 
+                position={[0, viewerHeight, roomDepth/2 - 20]}
+                intensity={1.5}
+                distance={400}
+                decay={2}
+                color="#fff0e6"
+                castShadow={tierSettings.shadows}
+              />
+            </>
+          )}
           <Suspense fallback={null}>
             <Room
               isHovered={isHovered}

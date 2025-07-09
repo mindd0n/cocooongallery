@@ -4,6 +4,8 @@ import IntroScreen from './components/IntroScreen.jsx';
 import LoadingScreen from './components/LoadingScreen';
 import RightBottomControls from './components/RightBottomControls';
 import OrientationGuide from './components/OrientationGuide';
+import PerformanceBadge from './components/PerformanceBadge';
+import { Perf } from 'r3f-perf';
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);
@@ -141,9 +143,15 @@ function App() {
   }
 
   console.log('RoomScene 렌더링 중...');
+  
+  // Perf 위젯 토글 (환경변수로 제어)
+  const showPerf = import.meta.env.VITE_DEBUG_PERF === 'true';
+  
   return (
     <>
       <OrientationGuide />
+      <PerformanceBadge />
+      {showPerf && <Perf position="top-left" />}
       <div
         style={isMobileLandscape ? {
           minHeight: '100vh',

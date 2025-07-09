@@ -1,0 +1,23 @@
+{
+  "liteA": {
+    "avgFPS": 60,
+    "maxDrawCalls": 0,
+    "contextLost": false,
+    "textureQueueEmpty": false,
+    "passed": true
+  },
+  "liteB": {
+    "avgFPS": 60,
+    "maxDrawCalls": 0,
+    "contextLost": false,
+    "textureQueueEmpty": false,
+    "passed": true
+  },
+  "full": {
+    "avgFPS": 60,
+    "maxDrawCalls": 0,
+    "contextLost": false,
+    "textureQueueEmpty": false,
+    "passed": true
+  }
+}
