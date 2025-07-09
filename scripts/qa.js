@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
 
 // QA 기준 설정
 const QA_CRITERIA = {
@@ -43,12 +44,67 @@ class QATester {
     this.browser = null;
     this.page = null;
     this.results = {};
+    this.previewProcess = null;
   }
 
   async init() {
+    console.log('🔧 VITE_DEBUG_PERF=true로 빌드 시작...');
+    
+    // VITE_DEBUG_PERF=true로 빌드 실행
+    await this.buildWithPerf();
+    
+    // 프리뷰 서버 시작
+    await this.startPreview();
+    
+    // 브라우저 초기화
     this.browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        '--use-gl=swiftshader',  // WebGL 활성화 보장
+        '--enable-webgl',
+        '--ignore-gpu-blacklist'
+      ]
+    });
+  }
+  
+  async buildWithPerf() {
+    return new Promise((resolve, reject) => {
+      const buildProcess = spawn('npm', ['run', 'build'], {
+        env: { ...process.env, VITE_DEBUG_PERF: 'true' },
+        stdio: 'inherit'
+      });
+      
+      buildProcess.on('close', (code) => {
+        if (code === 0) {
+          console.log('✅ 빌드 완료');
+          resolve();
+        } else {
+          reject(new Error(`빌드 실패: ${code}`));
+        }
+      });
+    });
+  }
+  
+  async startPreview() {
+    return new Promise((resolve) => {
+      this.previewProcess = spawn('npm', ['run', 'preview'], {
+        env: { ...process.env, VITE_DEBUG_PERF: 'true' },
+        stdio: 'pipe'
+      });
+      
+      // 프리뷰 서버가 시작될 때까지 대기
+      this.previewProcess.stdout.on('data', (data) => {
+        const output = data.toString();
+        if (output.includes('Local:') || output.includes('localhost:')) {
+          console.log('✅ 프리뷰 서버 시작됨');
+          setTimeout(resolve, 2000); // 서버 완전 시작 대기
+        }
+      });
+      
+      // 10초 후 타임아웃
+      setTimeout(resolve, 10000);
     });
   }
 
@@ -89,23 +145,18 @@ class QATester {
       // 텍스처 메모리 추적
       window.qaMetrics.peakTextures = 0;
       
-      // Draw Calls 측정 (렌더러 생성 후)
+      // Draw Calls 측정 (올바른 경로로 WebGL 통계 읽기)
       setTimeout(() => {
-        const canvas = document.querySelector('canvas');
-        if (canvas && canvas.__r3f) {
-          const renderer = canvas.__r3f.gl;
-          if (renderer && renderer.info) {
-            setInterval(() => {
-              if (renderer.info.render) {
-                window.qaMetrics.drawCalls.push(renderer.info.render.calls);
-              }
-              if (renderer.info.memory) {
-                const textureCount = renderer.info.memory.textures;
-                window.qaMetrics.peakTextures = Math.max(window.qaMetrics.peakTextures, textureCount);
-              }
-            }, 1000);
+        setInterval(() => {
+          // window.__R3F?.gl?.info 경로로 접근
+          if (window.__R3F?.gl?.info?.render?.calls !== undefined) {
+            window.qaMetrics.drawCalls.push(window.__R3F.gl.info.render.calls);
           }
-        }
+          if (window.__R3F?.gl?.info?.memory?.textures !== undefined) {
+            const textureCount = window.__R3F.gl.info.memory.textures;
+            window.qaMetrics.peakTextures = Math.max(window.qaMetrics.peakTextures, textureCount);
+          }
+        }, 1000);
       }, 2000);
       
       // WebGL Context Lost 감지
@@ -118,26 +169,14 @@ class QATester {
         });
       }
       
-      // 텍스처 로딩 완료 감지 (실제 텍스처 로딩 상태 확인)
-      let textureLoadCount = 0;
-      const originalLoad = THREE.TextureLoader.prototype.load;
-      THREE.TextureLoader.prototype.load = function(url, onLoad, onProgress, onError) {
-        return originalLoad.call(this, url, 
-          (texture) => {
-            textureLoadCount++;
-            console.log(`📦 텍스처 로드 완료: ${textureLoadCount}개`);
-            if (onLoad) onLoad(texture);
-          },
-          onProgress,
-          onError
-        );
-      };
-      
-      // 5초 후 텍스처 로딩 완료로 간주
-      setTimeout(() => {
-        window.qaMetrics.textureQueueEmpty = true;
-        console.log('✅ 텍스처 큐 완료 (타임아웃)');
-      }, 5000);
+      // textureQueueEmpty 플래그 연결
+      // utils/loadTexturesSequential.js에서 설정된 플래그를 감지
+      setInterval(() => {
+        if (window.__textureQueueEmpty) {
+          window.qaMetrics.textureQueueEmpty = true;
+          console.log('✅ 텍스처 큐 완료 감지');
+        }
+      }, 500);
     });
     
     // 페이지 로드
@@ -146,7 +185,7 @@ class QATester {
     // 10초간 성능 측정
     await this.page.waitForTimeout(10000);
     
-    // 결과 수집
+    // 결과 수집 - 올바른 경로로 WebGL 통계 읽기
     const metrics = await this.page.evaluate(() => {
       return {
         fps: window.qaMetrics.fps,
@@ -157,26 +196,39 @@ class QATester {
       };
     });
     
-    // 평균 계산
+    // 추가로 올바른 경로로 최종 통계 확인
+    const finalStats = await this.page.evaluate(() => {
+      return {
+        drawCalls: window.__R3F?.gl?.info?.render?.calls || 0,
+        textures: window.__R3F?.gl?.info?.memory?.textures || 0,
+        queueEmpty: !!window.__textureQueueEmpty
+      };
+    });
+    
+    // 평균 계산 - 최종 통계 우선 사용
     const avgFPS = metrics.fps.length > 0 ? 
       Math.round(metrics.fps.reduce((a, b) => a + b, 0) / metrics.fps.length) : 0;
-    const maxDrawCalls = metrics.drawCalls.length > 0 ? 
-      Math.max(...metrics.drawCalls) : 0;
+    const maxDrawCalls = Math.max(
+      metrics.drawCalls.length > 0 ? Math.max(...metrics.drawCalls) : 0,
+      finalStats.drawCalls
+    );
+    const peakTextures = Math.max(metrics.peakTextures, finalStats.textures);
+    const textureQueueEmpty = metrics.textureQueueEmpty || finalStats.queueEmpty;
     
     this.results[tier] = {
       avgFPS,
       maxDrawCalls,
       contextLost: metrics.contextLost,
-      textureQueueEmpty: metrics.textureQueueEmpty,
-      peakTextures: metrics.peakTextures,
-      passed: this.checkCriteria(tier, avgFPS, maxDrawCalls, metrics.contextLost, metrics.textureQueueEmpty)
+      textureQueueEmpty,
+      peakTextures,
+      passed: this.checkCriteria(tier, avgFPS, maxDrawCalls, metrics.contextLost, textureQueueEmpty)
     };
     
     console.log(`  📊 FPS: ${avgFPS} (기준: ${QA_CRITERIA.fps[tier]})`);
     console.log(`  📊 Draw Calls: ${maxDrawCalls} (기준: ${QA_CRITERIA.drawCalls})`);
     console.log(`  📊 Context Lost: ${metrics.contextLost ? '❌' : '✅'}`);
-    console.log(`  📊 Texture Queue: ${metrics.textureQueueEmpty ? '✅' : '❌'}`);
-    console.log(`  📊 Peak Textures: ${metrics.peakTextures}`);
+    console.log(`  📊 Texture Queue: ${textureQueueEmpty ? '✅' : '❌'}`);
+    console.log(`  📊 Peak Textures: ${peakTextures}`);
     console.log(`  📊 통과: ${this.results[tier].passed ? '✅' : '❌'}`);
     
     await this.page.close();
@@ -223,6 +275,9 @@ class QATester {
   async cleanup() {
     if (this.browser) {
       await this.browser.close();
+    }
+    if (this.previewProcess) {
+      this.previewProcess.kill();
     }
   }
 }
