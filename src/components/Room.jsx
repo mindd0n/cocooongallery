@@ -868,6 +868,12 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
   const [isLampOverlay, setIsLampOverlay] = useState(false);
   const [currentTier, setCurrentTier] = useState('full');
   const [isContextLost, setIsContextLost] = useState(false);
+  const [isHardDowngraded, setIsHardDowngraded] = useState(false);
+  
+  // 메모리 누수 방지를 위한 ref들
+  const renderTargetsRef = useRef([]);
+  const videoTexturesRef = useRef([]);
+  const rendererRef = useRef(null);
   
   // 디지털디톡스 효과 상태
   const [phoneEffect, setPhoneEffect] = useState({
@@ -886,11 +892,17 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
     console.log(`성능 티어 감지: ${tier}`);
   }, []);
 
-  // WebGL Context Lost 처리
+  // WebGL Context Lost 처리 (개선된 버전)
   useEffect(() => {
+    let hardDowngraded = false;
+    
     const handleContextLost = (e) => {
       e.preventDefault();
       console.warn('WebGL Context Lost - 성능 다운그레이드');
+      
+      if (hardDowngraded) return;
+      hardDowngraded = true;
+      setIsHardDowngraded(true);
       
       // Sentry 로깅 (Sentry가 설정된 경우)
       if (window.Sentry) {
@@ -904,8 +916,9 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
         });
       }
       
-      setIsContextLost(true);
-      setCurrentTier('liteA');
+      // 강제 다운그레이드
+      downgradeToLiteA();
+      setTimeout(restartScene, 100);
     };
 
     const handleContextRestored = () => {
@@ -926,6 +939,49 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
         canvas.removeEventListener('webglcontextrestored', handleContextRestored);
       }
     };
+  }, [currentTier]);
+
+  // 강제 다운그레이드 함수
+  const downgradeToLiteA = useCallback(() => {
+    console.log('🔴 강제 다운그레이드: LiteA 모드');
+    setCurrentTier('liteA');
+    setIsContextLost(true);
+    
+    // 렌더러 정보 리셋
+    if (rendererRef.current) {
+      rendererRef.current.info.reset();
+    }
+  }, []);
+
+  // 씬 재시작 함수
+  const restartScene = useCallback(() => {
+    console.log('🔄 씬 재시작');
+    // 메모리 정리
+    cleanupMemory();
+  }, []);
+
+  // 메모리 정리 함수
+  const cleanupMemory = useCallback(() => {
+    // RenderTarget 정리
+    renderTargetsRef.current.forEach(rt => {
+      if (rt && rt.dispose) {
+        rt.dispose();
+      }
+    });
+    renderTargetsRef.current = [];
+
+    // 비디오 텍스처 정리
+    videoTexturesRef.current.forEach(vt => {
+      if (vt && vt.dispose) {
+        vt.dispose();
+      }
+    });
+    videoTexturesRef.current = [];
+
+    // 렌더러 정보 리셋
+    if (rendererRef.current) {
+      rendererRef.current.info.reset();
+    }
   }, []);
 
   // 현재 티어 설정 가져오기 (메모이제이션)
@@ -1053,7 +1109,7 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
     setSelectedButton(key);
   }, [setSelectedButton, setIsLampOverlay, triggerPhoneEffect]);
 
-  // 컴포넌트 언마운트 시 타임아웃 정리
+  // 컴포넌트 언마운트 시 타임아웃 정리 및 메모리 정리
   React.useEffect(() => {
     return () => { 
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1062,8 +1118,11 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
         timeoutsRef.forEach(clearTimeout);
         timeoutsRef.length = 0;
       }
+      
+      // 메모리 정리
+      cleanupMemory();
     };
-  }, []);
+  }, [cleanupMemory]);
 
   return (
     <div style={{ 
@@ -1114,6 +1173,9 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
             camera.layers.enable(1);
             gl.setClearColor(0x1a1a1a, 1);
             
+            // 렌더러 참조 저장
+            rendererRef.current = gl;
+            
             // 티어별 렌더러 설정 (안전한 방식으로)
             if (tierSettings.shadowMapSize > 0) {
               gl.shadowMap.enabled = true;
@@ -1125,6 +1187,13 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
             } else {
               gl.shadowMap.enabled = false;
             }
+            
+            // 실시간 메모리 로그 (3초 간격)
+            setInterval(() => {
+              if (gl.info) {
+                console.log(`📊 Memory [${currentTier}]: textures=${gl.info.memory.textures}, geometries=${gl.info.memory.geometries}, programs=${gl.info.programs}`);
+              }
+            }, 3000);
           }}
         >
           <OrbitControls
@@ -1191,7 +1260,7 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
               isLampOverlay={isLampOverlay}
             />
           </Suspense>
-          {hoveredObject && buttonRef.current && buttonRef.current.getObjectByName(hoveredObject) && (
+          {tierSettings.postProcessing && hoveredObject && buttonRef.current && buttonRef.current.getObjectByName(hoveredObject) && (
             <EffectComposer>
               <Outline
                 selection={[buttonRef.current.getObjectByName(hoveredObject)]}

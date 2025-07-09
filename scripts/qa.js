@@ -104,7 +104,8 @@ class QATester {
       // WebGL Context Lost 감지
       const canvas = document.querySelector('canvas');
       if (canvas) {
-        canvas.addEventListener('webglcontextlost', () => {
+        canvas.addEventListener('webglcontextlost', (e) => {
+          e.preventDefault();
           window.qaMetrics.contextLost = true;
           console.log('🔴 WebGL Context Lost 감지');
         });
@@ -174,7 +175,7 @@ class QATester {
   checkCriteria(tier, fps, drawCalls, contextLost, textureQueueEmpty) {
     return fps >= QA_CRITERIA.fps[tier] &&
            drawCalls <= QA_CRITERIA.drawCalls &&
-           !contextLost;
+           contextLost === false; // contextLost가 false여야 통과
     // textureQueueEmpty는 일시적으로 제외 (실제 환경에서는 항상 완료됨)
   }
 

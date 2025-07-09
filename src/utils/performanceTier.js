@@ -56,6 +56,15 @@ const getEstimatedRAM = () => {
 export const detectPerformanceTier = () => {
   const ram = getEstimatedRAM();
   
+  // iOS 특화 경량 옵션
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isIOS = /iphone|ipad|ipod/.test(userAgent);
+  
+  if (isIOS && ram <= 2) {
+    console.log('🍎 iOS 경량 모드 활성화');
+    return 'liteA'; // iOS 저사양 기기는 무조건 liteA
+  }
+  
   if (ram <= 1) {
     return 'liteA';
   } else if (ram <= 2) {
@@ -76,6 +85,7 @@ export const tierSettings = {
     antialias: false,
     toneMapping: 'NoToneMapping',
     alpha: false,
+    postProcessing: false, // Post-processing 비활성화
     lighting: {
       ambient: true,
       directional: false,
@@ -92,6 +102,7 @@ export const tierSettings = {
     antialias: false,
     toneMapping: 'NoToneMapping',
     alpha: false,
+    postProcessing: false, // Post-processing 비활성화
     lighting: {
       ambient: true,
       directional: true,
@@ -108,6 +119,7 @@ export const tierSettings = {
     antialias: true,
     toneMapping: 'ACESFilmicToneMapping',
     alpha: false,
+    postProcessing: true, // Post-processing 활성화
     lighting: {
       ambient: true,
       directional: true,

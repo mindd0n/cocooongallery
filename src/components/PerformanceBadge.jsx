@@ -1,13 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { detectPerformanceTier, isDebugMode } from '../utils/performanceTier';
 
 const PerformanceBadge = () => {
-  const tier = detectPerformanceTier();
+  const [tier, setTier] = useState(detectPerformanceTier());
+  const [isHardDowngraded, setIsHardDowngraded] = useState(false);
   const isDebug = isDebugMode();
+  
+  // 실시간 티어 업데이트
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTier(detectPerformanceTier());
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Context Lost 감지
+  useEffect(() => {
+    const handleContextLost = () => {
+      setIsHardDowngraded(true);
+    };
+    
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+      canvas.addEventListener('webglcontextlost', handleContextLost);
+    }
+    
+    return () => {
+      if (canvas) {
+        canvas.removeEventListener('webglcontextlost', handleContextLost);
+      }
+    };
+  }, []);
   
   if (!isDebug) return null;
   
   const getTierColor = () => {
+    if (isHardDowngraded) return '#ff0000'; // 빨간색 (SAFE MODE)
+    
     switch (tier) {
       case 'liteA': return '#ff4444';
       case 'liteB': return '#ffaa00';
@@ -17,6 +47,8 @@ const PerformanceBadge = () => {
   };
   
   const getTierText = () => {
+    if (isHardDowngraded) return 'SAFE MODE';
+    
     switch (tier) {
       case 'liteA': return 'LITE A';
       case 'liteB': return 'LITE B';
