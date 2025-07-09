@@ -27,7 +27,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "echo \"No test specified\"",
-    "qa": "node scripts/qa.js"
+    "qa": "node scripts/qa.js",
+    "check-dup": "node scripts/check-duplicates.js"
   },
   "eslintConfig": {
     "extends": [

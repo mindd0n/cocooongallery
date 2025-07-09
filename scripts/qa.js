@@ -86,6 +86,9 @@ class QATester {
       }
       requestAnimationFrame(measureFPS);
       
+      // 텍스처 메모리 추적
+      window.qaMetrics.peakTextures = 0;
+      
       // Draw Calls 측정 (렌더러 생성 후)
       setTimeout(() => {
         const canvas = document.querySelector('canvas');
@@ -95,6 +98,10 @@ class QATester {
             setInterval(() => {
               if (renderer.info.render) {
                 window.qaMetrics.drawCalls.push(renderer.info.render.calls);
+              }
+              if (renderer.info.memory) {
+                const textureCount = renderer.info.memory.textures;
+                window.qaMetrics.peakTextures = Math.max(window.qaMetrics.peakTextures, textureCount);
               }
             }, 1000);
           }
@@ -145,7 +152,8 @@ class QATester {
         fps: window.qaMetrics.fps,
         drawCalls: window.qaMetrics.drawCalls,
         contextLost: window.qaMetrics.contextLost,
-        textureQueueEmpty: window.qaMetrics.textureQueueEmpty
+        textureQueueEmpty: window.qaMetrics.textureQueueEmpty,
+        peakTextures: window.qaMetrics.peakTextures || 0
       };
     });
     
@@ -160,6 +168,7 @@ class QATester {
       maxDrawCalls,
       contextLost: metrics.contextLost,
       textureQueueEmpty: metrics.textureQueueEmpty,
+      peakTextures: metrics.peakTextures,
       passed: this.checkCriteria(tier, avgFPS, maxDrawCalls, metrics.contextLost, metrics.textureQueueEmpty)
     };
     
@@ -167,6 +176,7 @@ class QATester {
     console.log(`  📊 Draw Calls: ${maxDrawCalls} (기준: ${QA_CRITERIA.drawCalls})`);
     console.log(`  📊 Context Lost: ${metrics.contextLost ? '❌' : '✅'}`);
     console.log(`  📊 Texture Queue: ${metrics.textureQueueEmpty ? '✅' : '❌'}`);
+    console.log(`  📊 Peak Textures: ${metrics.peakTextures}`);
     console.log(`  📊 통과: ${this.results[tier].passed ? '✅' : '❌'}`);
     
     await this.page.close();

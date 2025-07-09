@@ -892,6 +892,17 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
     console.log(`성능 티어 감지: ${tier}`);
   }, []);
 
+  // 디버그 로그 (3초 간격)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (rendererRef.current) {
+        console.log('TIER:', currentTier, 'TEXTURES:', rendererRef.current.info.memory.textures);
+      }
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, [currentTier]);
+
   // WebGL Context Lost 처리 (개선된 버전)
   useEffect(() => {
     let hardDowngraded = false;
@@ -946,11 +957,6 @@ export default function RoomScene({ onLoadingProgress, onLoadingComplete, select
     console.log('🔴 강제 다운그레이드: LiteA 모드');
     setCurrentTier('liteA');
     setIsContextLost(true);
-    
-    // 렌더러 정보 리셋
-    if (rendererRef.current) {
-      rendererRef.current.info.reset();
-    }
   }, []);
 
   // 씬 재시작 함수

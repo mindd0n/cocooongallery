@@ -15,24 +15,6 @@ const PerformanceBadge = () => {
     return () => clearInterval(interval);
   }, []);
   
-  // Context Lost 감지
-  useEffect(() => {
-    const handleContextLost = () => {
-      setIsHardDowngraded(true);
-    };
-    
-    const canvas = document.querySelector('canvas');
-    if (canvas) {
-      canvas.addEventListener('webglcontextlost', handleContextLost);
-    }
-    
-    return () => {
-      if (canvas) {
-        canvas.removeEventListener('webglcontextlost', handleContextLost);
-      }
-    };
-  }, []);
-  
   if (!isDebug) return null;
   
   const getTierColor = () => {
