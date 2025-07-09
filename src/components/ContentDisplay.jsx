@@ -768,9 +768,99 @@ const ContentDisplay = ({ buttonId, onClose }) => {
     // 2차 팝업 렌더링
     const renderDetailContent = () => {
       if (!selectedHomeContent) return null;
+      if (selectedHomeContent === 'icon_o') {
+        // 모바일 조건
+        const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
+        const videoStyle = isMobile
+          ? {
+              width: '60vw',
+              height: 'auto',
+              maxHeight: '100vh',
+              objectFit: 'contain',
+              display: 'block',
+              background: 'black',
+              borderRadius: 8,
+            }
+          : {
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              display: 'block',
+              background: 'black',
+              borderRadius: 8,
+            };
+        return (
+          <video
+            src={`${S3_BASE_URL}/O.mp4`}
+            style={videoStyle}
+            playsInline
+            controls
+            controlsList="nodownload"
+          />
+        );
+      }
+      if (selectedHomeContent === 'icon_q') {
+        // 모바일 조건
+        const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
+        const videoStyle = isMobile
+          ? {
+              width: '60vw',
+              height: 'auto',
+              maxHeight: '100vh',
+              objectFit: 'contain',
+              display: 'block',
+              background: 'black',
+              borderRadius: 8,
+            }
+          : {
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              display: 'block',
+              background: 'black',
+              borderRadius: 8,
+            };
+        return (
+          <video
+            src={`${S3_BASE_URL}/Q.mp4`}
+            style={videoStyle}
+            playsInline
+            controls
+            controlsList="nodownload"
+          />
+        );
+      }
+      if (selectedHomeContent === 'icon_p') {
+        // 모바일 조건
+        const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
+        const imgStyle = isMobile
+          ? {
+              width: '58vw',
+              height: 'auto',
+              maxHeight: '88vh',
+              objectFit: 'contain',
+              display: 'block',
+              background: 'white',
+              borderRadius: 8,
+            }
+          : {
+              width: '100%',
+              height: 'auto',
+              maxHeight: '95vh',
+              objectFit: 'contain',
+              display: 'block',
+              background: 'white',
+              borderRadius: 8,
+            };
+        return (
+          <MagnifierImage
+            src={"/content/btn_h_home/P.sleep-newspaper/dist/assets/IMG_0853-BEy-fzvc.PNG"}
+            alt="신문 이미지"
+            style={imgStyle}
+          />
+        );
+      }
       switch (selectedHomeContent) {
-        case 'icon_o':
-          return <GenericContent type="video" src={`${S3_BASE_URL}/O.mp4`} />;
         case 'icon_p':
           return (
             <iframe 
@@ -796,6 +886,39 @@ const ContentDisplay = ({ buttonId, onClose }) => {
     
     // 팝업 반응형 크기 계산 함수
     function getSleepNewspaperPopupStyle(selectedHomeContent) {
+      const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
+      if (selectedHomeContent === 'icon_o' || selectedHomeContent === 'icon_q') {
+        return {
+          width: isMobile ? '60vw' : 'min(900px,90vw)',
+          height: 'auto',
+          maxHeight: isMobile ? '100vh' : '90vh',
+          background: 'transparent', // 하얀 배경 제거
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 0,
+          margin: 0,
+        };
+      }
+      if (selectedHomeContent === 'icon_p') {
+        return {
+          width: isMobile ? '60vw' : 'min(1000px,80vw)',
+          height: 'auto',
+          maxHeight: isMobile ? '90vh' : '95vh',
+          background: 'white',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 0,
+          margin: 0,
+        };
+      }
       const isTablet = typeof window !== 'undefined' && window.innerWidth <= 1024;
       const isMobileLandscape = typeof window !== 'undefined' && window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
       if (selectedHomeContent === 'icon_p') {
@@ -1380,6 +1503,96 @@ function getDiaryPopupStyle() {
     justifyContent: 'center',
     maxHeight: '98vh',
   };
+}
+
+// 신문 팝업 돋보기 이미지 컴포넌트
+function MagnifierImage({ src, alt, style }) {
+  const [showLens, setShowLens] = React.useState(false);
+  const [lensPos, setLensPos] = React.useState({ x: 0, y: 0 });
+  const imgRef = React.useRef(null);
+  const containerRef = React.useRef(null);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
+  const lensSize = 120; // 렌즈 지름(px)
+  const zoom = 2.2; // 확대 배율
+
+  // 이미지 크기 계산
+  const [imgDims, setImgDims] = React.useState({ width: 1, height: 1 });
+  React.useEffect(() => {
+    if (imgRef.current) {
+      setImgDims({
+        width: imgRef.current.offsetWidth,
+        height: imgRef.current.offsetHeight,
+      });
+    }
+  }, [imgRef.current, style.width, style.height]);
+
+  // 렌즈 위치 계산
+  const handleMouseMove = e => {
+    if (isMobile) return;
+    const rect = imgRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setLensPos({ x, y });
+  };
+
+  // 렌즈가 이미지 영역을 벗어나지 않게 제한
+  const lensLeft = Math.max(0, Math.min(lensPos.x - lensSize / 2, imgDims.width - lensSize));
+  const lensTop = Math.max(0, Math.min(lensPos.y - lensSize / 2, imgDims.height - lensSize));
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        display: 'inline-block',
+        position: 'relative',
+        ...style,
+      }}
+    >
+      <img
+        ref={imgRef}
+        src={src}
+        alt={alt}
+        style={{
+          width: '100%',
+          height: 'auto',
+          display: 'block',
+          borderRadius: style.borderRadius,
+          background: style.background,
+          objectFit: style.objectFit,
+          userSelect: 'none',
+          pointerEvents: 'auto',
+          cursor: !isMobile ? 'none' : 'default',
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={e => { if (!isMobile) { setShowLens(true); handleMouseMove(e); }}}
+        onMouseLeave={() => setShowLens(false)}
+        draggable={false}
+      />
+      {/* 돋보기 렌즈 */}
+      {!isMobile && showLens && (
+        <div
+          style={{
+            position: 'absolute',
+            left: lensLeft,
+            top: lensTop,
+            width: lensSize,
+            height: lensSize,
+            borderRadius: '50%',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+            border: '2.5px solid #fff',
+            overflow: 'hidden',
+            pointerEvents: 'none',
+            backgroundImage: `url(${src})`,
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: `${imgDims.width * zoom}px ${imgDims.height * zoom}px`,
+            backgroundPosition: `-${(lensPos.x * zoom) - lensSize / 2}px -${(lensPos.y * zoom) - lensSize / 2}px`,
+            zIndex: 20,
+            cursor: 'none',
+          }}
+        />
+      )}
+    </div>
+  );
 }
 
 export { GenericContent };
