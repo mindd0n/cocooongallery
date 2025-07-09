@@ -15,6 +15,10 @@ export const loadTexturesSequential = (urlArray, onApply, interval = 1000) => {
 
     const loadNext = () => {
       if (currentIndex >= urlArray.length) {
+        // 모든 텍스처 로딩 완료 시 플래그 설정
+        if (typeof window !== 'undefined') {
+          window.__textureQueueEmpty = true;
+        }
         resolve(loadedTextures);
         return;
       }

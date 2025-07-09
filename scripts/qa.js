@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 // QA 기준 설정
 const QA_CRITERIA = {
@@ -46,9 +47,45 @@ class QATester {
   }
 
   async init() {
+    // VITE_DEBUG_PERF=true로 빌드 및 프리뷰 시작
+    console.log('🔧 VITE_DEBUG_PERF=true로 빌드 중...');
+    try {
+      execSync('npm run build', { 
+        env: { ...process.env, VITE_DEBUG_PERF: 'true' },
+        stdio: 'inherit'
+      });
+      console.log('✅ 빌드 완료');
+    } catch (error) {
+      console.error('❌ 빌드 실패:', error.message);
+      throw error;
+    }
+
+    // 프리뷰 서버 시작
+    console.log('🚀 프리뷰 서버 시작 중...');
+    try {
+      execSync('npm run preview', { 
+        env: { ...process.env, VITE_DEBUG_PERF: 'true' },
+        stdio: 'pipe',
+        detached: true
+      });
+      // 서버 시작 대기
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      console.log('✅ 프리뷰 서버 시작 완료');
+    } catch (error) {
+      console.error('❌ 프리뷰 서버 시작 실패:', error.message);
+      throw error;
+    }
+
     this.browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        '--use-gl=swiftshader',  // WebGL 활성화 보장
+        '--enable-webgl',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor'
+      ]
     });
   }
 
@@ -89,23 +126,18 @@ class QATester {
       // 텍스처 메모리 추적
       window.qaMetrics.peakTextures = 0;
       
-      // Draw Calls 측정 (렌더러 생성 후)
+      // Draw Calls 측정 (올바른 R3F 경로 사용)
       setTimeout(() => {
-        const canvas = document.querySelector('canvas');
-        if (canvas && canvas.__r3f) {
-          const renderer = canvas.__r3f.gl;
-          if (renderer && renderer.info) {
-            setInterval(() => {
-              if (renderer.info.render) {
-                window.qaMetrics.drawCalls.push(renderer.info.render.calls);
-              }
-              if (renderer.info.memory) {
-                const textureCount = renderer.info.memory.textures;
-                window.qaMetrics.peakTextures = Math.max(window.qaMetrics.peakTextures, textureCount);
-              }
-            }, 1000);
+        setInterval(() => {
+          // R3F WebGL 통계 읽기
+          if (window.__R3F?.gl?.info?.render?.calls !== undefined) {
+            window.qaMetrics.drawCalls.push(window.__R3F.gl.info.render.calls);
           }
-        }
+          if (window.__R3F?.gl?.info?.memory?.textures !== undefined) {
+            const textureCount = window.__R3F.gl.info.memory.textures;
+            window.qaMetrics.peakTextures = Math.max(window.qaMetrics.peakTextures, textureCount);
+          }
+        }, 1000);
       }, 2000);
       
       // WebGL Context Lost 감지
@@ -141,27 +173,36 @@ class QATester {
     });
     
     // 페이지 로드
-    await this.page.goto('http://localhost:5174', { waitUntil: 'networkidle0' });
+    await this.page.goto('http://localhost:4173', { waitUntil: 'networkidle0' });
     
     // 10초간 성능 측정
     await this.page.waitForTimeout(10000);
     
-    // 결과 수집
+    // 결과 수집 (올바른 경로로 WebGL 통계 읽기)
     const metrics = await this.page.evaluate(() => {
+      // 최종 WebGL 통계 확인
+      const drawCalls = window.__R3F?.gl?.info?.render?.calls || 0;
+      const textures = window.__R3F?.gl?.info?.memory?.textures || 0;
+      const queueEmpty = !!window.__textureQueueEmpty;
+      
       return {
         fps: window.qaMetrics.fps,
         drawCalls: window.qaMetrics.drawCalls,
         contextLost: window.qaMetrics.contextLost,
-        textureQueueEmpty: window.qaMetrics.textureQueueEmpty,
-        peakTextures: window.qaMetrics.peakTextures || 0
+        textureQueueEmpty: queueEmpty,
+        peakTextures: Math.max(window.qaMetrics.peakTextures || 0, textures),
+        finalDrawCalls: drawCalls,
+        finalTextures: textures
       };
     });
     
     // 평균 계산
     const avgFPS = metrics.fps.length > 0 ? 
       Math.round(metrics.fps.reduce((a, b) => a + b, 0) / metrics.fps.length) : 0;
-    const maxDrawCalls = metrics.drawCalls.length > 0 ? 
-      Math.max(...metrics.drawCalls) : 0;
+    const maxDrawCalls = Math.max(
+      metrics.drawCalls.length > 0 ? Math.max(...metrics.drawCalls) : 0,
+      metrics.finalDrawCalls
+    );
     
     this.results[tier] = {
       avgFPS,
